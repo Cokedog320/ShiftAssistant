@@ -54,6 +54,11 @@ import androidx.compose.ui.unit.dp
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.model.vacationShift
 import java.time.LocalDate
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.TextButton
+import com.qiuye.calendarkotlin.diary.data.DiaryEntity
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -67,12 +72,14 @@ fun DayDetailBottomSheet(
     holidayName: String?,
     holidayLabel: String?,
     tasks: List<ReminderEntity>,
+    diaryEntry: DiaryEntity?,
     onDismiss: () -> Unit,
     onSave: (String, ShiftDefinition?) -> Unit,
     onToggleTask: (ReminderEntity) -> Unit,
     onDeleteTask: (ReminderEntity) -> Unit,
     onOpenReminder: (ReminderEntity) -> Unit,
     onAddFullReminder: () -> Unit,
+    onOpenDiaryEdit: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var draftNote by remember(date, note) { mutableStateOf(note) }
@@ -213,6 +220,104 @@ fun DayDetailBottomSheet(
                         }
                         IconButton(onClick = { onDeleteTask(task) }) {
                             Icon(Icons.Rounded.Delete, contentDescription = "删除任务", modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "日记",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                
+                if (diaryEntry != null) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenDiaryEdit() }
+                            .testTag("card_diary_preview"),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (diaryEntry.mood.isNotBlank()) {
+                                        Text(
+                                            text = diaryEntry.mood,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+                                    Text(
+                                        text = "今日心情",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Text(
+                                    text = "编辑日记",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            Text(
+                                text = diaryEntry.content,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                } else {
+                    OutlinedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenDiaryEdit() }
+                            .testTag("card_diary_empty"),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "今天还没有写日记哦...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            TextButton(
+                                onClick = onOpenDiaryEdit,
+                                modifier = Modifier.testTag("btn_write_diary")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("写日记")
+                            }
                         }
                     }
                 }

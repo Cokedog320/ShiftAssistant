@@ -43,6 +43,9 @@ import kotlinx.coroutines.flow.map
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.qiuye.calendarkotlin.tasks.ui.viewmodel.TasksViewModel
 import kotlinx.coroutines.launch
+import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
+import com.qiuye.calendarkotlin.diary.ui.DiaryEditBottomSheet
+import com.qiuye.calendarkotlin.diary.ui.DiaryListBottomSheet
 
 private val pagerStartMonth: YearMonth = YearMonth.of(1, 1)
 private val pagerPageCount = 12 * 9999
@@ -51,17 +54,26 @@ private val pagerPageCount = 12 * 9999
 fun CalendarRoute(
     viewModel: CalendarViewModel, 
     tasksViewModel: TasksViewModel = viewModel(),
+    diaryViewModel: DiaryViewModel = viewModel(),
     onNavigateToEditTask: (Long) -> Unit,
     onNavigateToNewTaskWithDate: (Long) -> Unit,
     onNavigateToNewTask: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val reminders by tasksViewModel.reminders.collectAsStateWithLifecycle()
+    val diaryDateKeys by diaryViewModel.diaryDateKeys.collectAsStateWithLifecycle()
+    val diaryEntries by diaryViewModel.allEntries.collectAsStateWithLifecycle()
+    val diarySearchQuery by diaryViewModel.searchQuery.collectAsStateWithLifecycle()
+    val diarySearchResults by diaryViewModel.searchResults.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     CalendarScreen(
         uiState = uiState,
         reminders = reminders,
+        diaryDateKeys = diaryDateKeys,
+        diaryEntries = diaryEntries,
+        diarySearchQuery = diarySearchQuery,
+        diarySearchResults = diarySearchResults,
         onMonthChanged = viewModel::setCurrentMonth,
         onToday = viewModel::showToday,
         onOpenSettings = viewModel::openSettings,
@@ -70,6 +82,13 @@ fun CalendarRoute(
         onCloseNotes = viewModel::closeNotes,
         onOpenRemindersCenter = viewModel::openReminders,
         onCloseRemindersCenter = viewModel::closeReminders,
+        onOpenDiaryList = viewModel::openDiaryList,
+        onCloseDiaryList = viewModel::closeDiaryList,
+        onOpenDiaryEdit = viewModel::openDiaryEdit,
+        onCloseDiaryEdit = viewModel::closeDiaryEdit,
+        onSearchDiary = diaryViewModel::setSearchQuery,
+        onSaveDiary = { date, content, mood -> diaryViewModel.saveDiary(date.toString(), content, mood) },
+        onDeleteDiary = { date -> diaryViewModel.deleteDiary(date.toString()) },
         onSelectDate = { date ->
             viewModel.selectDate(date)
             // Also auto-open if the date has reminders
@@ -114,6 +133,10 @@ fun CalendarRoute(
 private fun CalendarScreen(
     uiState: CalendarUiState,
     reminders: List<com.qiuye.calendarkotlin.tasks.data.ReminderEntity>,
+    diaryDateKeys: Set<String>,
+    diaryEntries: List<com.qiuye.calendarkotlin.diary.data.DiaryEntity>,
+    diarySearchQuery: String,
+    diarySearchResults: List<com.qiuye.calendarkotlin.diary.data.DiaryEntity>,
     onMonthChanged: (YearMonth) -> Unit,
     onToday: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -122,6 +145,13 @@ private fun CalendarScreen(
     onCloseNotes: () -> Unit,
     onOpenRemindersCenter: () -> Unit,
     onCloseRemindersCenter: () -> Unit,
+    onOpenDiaryList: () -> Unit,
+    onCloseDiaryList: () -> Unit,
+    onOpenDiaryEdit: () -> Unit,
+    onCloseDiaryEdit: () -> Unit,
+    onSearchDiary: (String) -> Unit,
+    onSaveDiary: (java.time.LocalDate, String, String) -> Unit,
+    onDeleteDiary: (java.time.LocalDate) -> Unit,
     onSelectDate: (java.time.LocalDate) -> Unit,
     onOpenSelectedDayDetail: () -> Unit,
     onCloseDaySheet: () -> Unit,
@@ -201,6 +231,12 @@ private fun CalendarScreen(
                     ) {
                         Text("备忘录")
                     }
+                    TextButton(
+                        onClick = onOpenDiaryList,
+                        modifier = Modifier.testTag("btn_diary"),
+                    ) {
+                        Text("日记")
+                    }
                     DateJumpButton(onDatePicked = onJumpToDate)
                     IconButton(
                         onClick = onOpenSettings,
@@ -260,12 +296,14 @@ private fun CalendarScreen(
                         uiState.calendarData,
                         uiState.selectedDate,
                         reminderDates,
+                        diaryDateKeys,
                     ) {
                         CalendarCalculator.buildMonthGrid(
                             month = month,
                             calendarData = uiState.calendarData,
                             selectedDate = uiState.selectedDate,
                             reminderDates = reminderDates,
+                            diaryDates = diaryDateKeys,
                         )
                     }
 
@@ -334,6 +372,9 @@ private fun CalendarScreen(
                             reminderDate == selected
                         }
                     }
+                    val diaryEntry = remember(selected, diaryEntries) {
+                        diaryEntries.firstOrNull { it.dateKey == selected.toString() }
+                    }
                     DayDetailBottomSheet(
                         date = selected,
                         currentShift = CalendarCalculator.getShiftForDate(selected, uiState.calendarData),
@@ -344,6 +385,7 @@ private fun CalendarScreen(
                         holidayName = selectedCell?.holiday?.name,
                         holidayLabel = selectedCell?.holiday?.label,
                         tasks = dateReminders,
+                        diaryEntry = diaryEntry,
                         onDismiss = onCloseDaySheet,
                         onSave = { note, shift -> onSaveDayDetail(selected, note, shift) },
                         onToggleTask = onToggleTask,
@@ -355,7 +397,41 @@ private fun CalendarScreen(
                         onAddFullReminder = {
                             onCloseDaySheet()
                             onNavigateToNewTaskWithDate(selected)
-                        }
+                        },
+                        onOpenDiaryEdit = onOpenDiaryEdit
+                    )
+                }
+            } else if (uiState.isDiaryListVisible) {
+                DiaryListBottomSheet(
+                    entries = diaryEntries,
+                    searchQuery = diarySearchQuery,
+                    searchResults = diarySearchResults,
+                    onSearchQueryChanged = onSearchDiary,
+                    onDismiss = onCloseDiaryList,
+                    onSelectDate = { date ->
+                        onCloseDiaryList()
+                        onJumpToDate(date)
+                    }
+                )
+            } else if (uiState.isDiaryEditVisible) {
+                uiState.selectedDate?.let { selected ->
+                    val diaryEntry = remember(selected, diaryEntries) {
+                        diaryEntries.firstOrNull { it.dateKey == selected.toString() }
+                    }
+                    DiaryEditBottomSheet(
+                        date = selected,
+                        existingEntry = diaryEntry,
+                        onDismiss = onCloseDiaryEdit,
+                        onSave = { content, mood ->
+                            onSaveDiary(selected, content, mood)
+                            onCloseDiaryEdit()
+                        },
+                        onDelete = if (diaryEntry != null) {
+                            {
+                                onDeleteDiary(selected)
+                                onCloseDiaryEdit()
+                            }
+                        } else null
                     )
                 }
             }
