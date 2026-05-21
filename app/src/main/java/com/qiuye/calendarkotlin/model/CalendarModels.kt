@@ -40,6 +40,7 @@ data class DayCell(
     val shift: ShiftDefinition?,
     val hasNote: Boolean,
     val hasReminder: Boolean = false,
+    val hasDiary: Boolean = false,
     val lunarLabel: String = "",
     val lunarFullText: String = "",
     val holiday: HolidayMarker? = null,

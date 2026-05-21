@@ -204,7 +204,7 @@ private fun DayCellCard(
                     Spacer(modifier = Modifier.height(18.dp))
                 }
 
-                if (dayCell.hasNote || dayCell.hasReminder) {
+                if (dayCell.hasNote || dayCell.hasReminder || dayCell.hasDiary) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(3.dp),
                         modifier = Modifier.height(6.dp),
@@ -221,6 +221,13 @@ private fun DayCellCard(
                                 modifier = Modifier
                                     .size(4.dp)
                                     .background(Color(0xFF1976D2), CircleShape),
+                            )
+                        }
+                        if (dayCell.hasDiary) {
+                            Box(
+                                modifier = Modifier
+                                    .size(4.dp)
+                                    .background(Color(0xFF4CAF50), CircleShape),
                             )
                         }
                     }

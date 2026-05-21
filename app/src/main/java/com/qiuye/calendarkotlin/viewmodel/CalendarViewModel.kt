@@ -34,13 +34,17 @@ data class CalendarUiState(
     val isNotesVisible: Boolean = false,
     val isDaySheetVisible: Boolean = false,
     val isRemindersVisible: Boolean = false,
+    val isDiaryListVisible: Boolean = false,
+    val isDiaryEditVisible: Boolean = false,
 )
 
 private data class SheetVisibility(
     val settings: Boolean,
     val notes: Boolean,
     val daySheet: Boolean,
-    val reminders: Boolean
+    val reminders: Boolean,
+    val diaryList: Boolean,
+    val diaryEdit: Boolean,
 )
 
 data class NoteEntry(
@@ -65,6 +69,8 @@ class CalendarViewModel internal constructor(
     private val notesVisible = MutableStateFlow(false)
     private val daySheetVisible = MutableStateFlow(false)
     private val remindersVisible = MutableStateFlow(false)
+    private val diaryListVisible = MutableStateFlow(false)
+    private val diaryEditVisible = MutableStateFlow(false)
     private val initialCalendarDataWithNotes = CalendarData().toCalendarDataWithNotes()
     private val calendarDataWithNotes: StateFlow<CalendarDataWithNotes> =
         repository.calendarData
@@ -79,8 +85,17 @@ class CalendarViewModel internal constructor(
         combine(
             calendarDataWithNotes,
             combine(currentMonth, selectedDate, ::Pair),
-            combine(settingsVisible, notesVisible, daySheetVisible, remindersVisible) { settings, notes, daySheet, reminders ->
-                SheetVisibility(settings, notes, daySheet, reminders)
+            combine(
+                listOf(settingsVisible, notesVisible, daySheetVisible, remindersVisible, diaryListVisible, diaryEditVisible)
+            ) { array ->
+                SheetVisibility(
+                    settings = array[0],
+                    notes = array[1],
+                    daySheet = array[2],
+                    reminders = array[3],
+                    diaryList = array[4],
+                    diaryEdit = array[5]
+                )
             }
         ) { dataWithNotes, (month, selected), visibility ->
             CalendarUiState(
@@ -92,6 +107,8 @@ class CalendarViewModel internal constructor(
                 isNotesVisible = visibility.notes,
                 isDaySheetVisible = visibility.daySheet,
                 isRemindersVisible = visibility.reminders,
+                isDiaryListVisible = visibility.diaryList,
+                isDiaryEditVisible = visibility.diaryEdit,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -105,6 +122,8 @@ class CalendarViewModel internal constructor(
                 isNotesVisible = notesVisible.value,
                 isDaySheetVisible = daySheetVisible.value,
                 isRemindersVisible = remindersVisible.value,
+                isDiaryListVisible = diaryListVisible.value,
+                isDiaryEditVisible = diaryEditVisible.value,
             ),
         )
 
@@ -166,6 +185,26 @@ class CalendarViewModel internal constructor(
 
     fun closeReminders() {
         remindersVisible.value = false
+    }
+
+    fun openDiaryList() {
+        closeAllSheets()
+        dismissDaySheet(clearSelection = true)
+        diaryListVisible.value = true
+    }
+
+    fun closeDiaryList() {
+        diaryListVisible.value = false
+    }
+
+    fun openDiaryEdit() {
+        closeAllSheets()
+        dismissDaySheet()
+        diaryEditVisible.value = true
+    }
+
+    fun closeDiaryEdit() {
+        diaryEditVisible.value = false
     }
 
     fun jumpToDate(date: LocalDate) {
@@ -233,6 +272,8 @@ class CalendarViewModel internal constructor(
         settingsVisible.value = false
         notesVisible.value = false
         remindersVisible.value = false
+        diaryListVisible.value = false
+        diaryEditVisible.value = false
     }
 
     private fun CalendarData.toCalendarDataWithNotes(): CalendarDataWithNotes =

@@ -6,14 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.qiuye.calendarkotlin.diary.data.DiaryDao
+import com.qiuye.calendarkotlin.diary.data.DiaryEntity
 
 @Database(
-    entities = [ReminderEntity::class],
-    version = 2,
+    entities = [ReminderEntity::class, DiaryEntity::class],
+    version = 3,
     exportSchema = true
 )
 abstract class ReminderDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
+    abstract fun diaryDao(): DiaryDao
 
     companion object {
         @Volatile
@@ -61,7 +64,22 @@ abstract class ReminderDatabase : RoomDatabase() {
             }
         }
 
-        val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2)
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS diary_entries (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        dateKey TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        mood TEXT NOT NULL DEFAULT '',
+                        createdAtMillis INTEGER NOT NULL,
+                        updatedAtMillis INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
+        val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 
         fun getInstance(context: Context): ReminderDatabase {
             return instance ?: synchronized(this) {

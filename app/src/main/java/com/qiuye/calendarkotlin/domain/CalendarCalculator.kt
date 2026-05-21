@@ -16,6 +16,7 @@ object CalendarCalculator {
         selectedDate: LocalDate?,
         today: LocalDate = LocalDate.now(),
         reminderDates: Set<LocalDate> = emptySet(),
+        diaryDates: Set<String> = emptySet(),
     ): List<DayCell> {
         val firstVisibleDay = month.atDay(1).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val lastVisibleDay = month.atEndOfMonth().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
@@ -38,6 +39,7 @@ object CalendarCalculator {
                 shift = getShiftForDate(date, calendarData),
                 hasNote = !calendarData.notes[date.toStorageKey()].isNullOrBlank(),
                 hasReminder = date in reminderDates,
+                hasDiary = date.toStorageKey() in diaryDates,
                 lunarLabel = if (calendarData.showLunar) lunarDisplay.label else "",
                 lunarFullText = if (calendarData.showLunar) lunarDisplay.fullText else "",
                 holiday = ChineseCalendarInfo.getHolidayMarker(date),
