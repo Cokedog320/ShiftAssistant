@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -208,7 +209,8 @@ fun DiaryEditScreen(
                                 verticalArrangement = Arrangement.Center,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(60.dp)
+                                    .height(56.dp)
+                                    .padding(horizontal = 4.dp)
                                     .graphicsLayer {
                                         translationY = if (isSelected) -4.dp.toPx() else 0f
                                     }
@@ -228,17 +230,18 @@ fun DiaryEditScreen(
                                         if (isSelected) accentGentleLight else Color(0xFFF9FAFB),
                                         RoundedCornerShape(16.dp)
                                     )
+                                    .clip(RoundedCornerShape(16.dp))
                                     .clickable {
                                         selectedMood = if (isSelected) "" else emoji
                                     }
                                     .alpha(if (isSelected) 1.0f else 0.5f)
                                     .testTag("chip_mood_$emoji")
                             ) {
-                                Text(text = emoji, fontSize = 22.sp)
+                                Text(text = emoji, fontSize = 18.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = label,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     color = textSecondary,
                                     fontWeight = FontWeight.Medium,
                                     maxLines = 1,
@@ -353,7 +356,7 @@ fun Modifier.coloredShadow(
     offsetX: Dp = 0.dp
 ) = this.drawBehind {
     val shadowColor = color.copy(alpha = alpha).toArgb()
-    val transparentColor = color.copy(alpha = 0f).toArgb()
+    val transparentColor = color.copy(alpha = 0.01f).toArgb()
     
     this.drawIntoCanvas { canvas ->
         val paint = Paint()

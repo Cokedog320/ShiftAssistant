@@ -212,7 +212,7 @@ private fun CalendarScreen(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "排班日历",
+                            text = "日历",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge,
                         )
