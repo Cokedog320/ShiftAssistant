@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin
+package com.qiuye.calendarkotlin
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
@@ -228,6 +228,73 @@ class CalendarUiTest {
         rule.onNodeWithTag("month_title")
             .assertTextEquals(currentMonth.format(monthFormatter))
         assertTrue(rule.onAllNodesWithTag("calendar_pager").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun diaryWorkflowCrudAndPreview() {
+        val today = LocalDate.now()
+        val diaryText = "今天是个好日子"
+
+        // 1. Open Diary Center
+        rule.onNodeWithTag("btn_diary").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("sheet_diary_list").assertIsDisplayed()
+
+        // 2. Click "Write Diary" button
+        rule.onNodeWithTag("btn_write_diary").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("screen_diary_edit").assertIsDisplayed()
+
+        // 3. Write content, choose a mood, and save
+        rule.onNodeWithTag("input_diary_content").performTextInput(diaryText)
+        rule.onNodeWithTag("chip_mood_😊").performClick()
+        rule.onNodeWithTag("btn_diary_save").performClick()
+
+        // Wait for edit screen to dismiss
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodesWithTag("screen_diary_edit").fetchSemanticsNodes().isEmpty()
+        }
+
+        // 4. Open Diary Center again and verify the entry appears in the list
+        rule.onNodeWithTag("btn_diary").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("diary_item_$today").assertIsDisplayed()
+
+        // 5. Click the entry in the list to edit it
+        rule.onNodeWithTag("diary_item_$today").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("screen_diary_edit").assertIsDisplayed()
+
+        // 6. Edit text and save
+        rule.onNodeWithTag("input_diary_content").performTextInput("，又做了一次修改")
+        rule.onNodeWithTag("btn_diary_save").performClick()
+
+        // Wait for edit screen to dismiss
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodesWithTag("screen_diary_edit").fetchSemanticsNodes().isEmpty()
+        }
+
+        // 7. Verify updated content is displayed in Diary Center list
+        rule.onNodeWithTag("btn_diary").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("diary_item_$today").assertIsDisplayed()
+
+        // 8. Open again and delete
+        rule.onNodeWithTag("diary_item_$today").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("btn_diary_delete").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("btn_dialog_confirm").performClick()
+
+        // Wait for edit screen to dismiss after deletion
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodesWithTag("screen_diary_edit").fetchSemanticsNodes().isEmpty()
+        }
+
+        // 9. Verify it goes back to empty state or is no longer listed
+        rule.onNodeWithTag("btn_diary").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("diary_item_$today").assertDoesNotExist()
     }
 }
 

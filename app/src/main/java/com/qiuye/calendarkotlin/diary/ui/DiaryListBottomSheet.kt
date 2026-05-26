@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,8 @@ import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +54,7 @@ fun DiaryListBottomSheet(
     searchResults: List<DiaryEntity>,
     onSearchQueryChanged: (String) -> Unit,
     onDismiss: () -> Unit,
+    onWriteDiaryClick: () -> Unit,
     onSelectDate: (LocalDate) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -102,6 +106,28 @@ fun DiaryListBottomSheet(
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Rounded.Close, contentDescription = "关闭")
                     }
+                }
+            }
+
+            // Write Diary Button
+            item {
+                Button(
+                    onClick = onWriteDiaryClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("btn_write_diary"),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "写日记",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 

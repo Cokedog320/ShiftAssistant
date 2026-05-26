@@ -71,4 +71,104 @@ class ReminderDatabaseMigrationTest {
         
         cursor.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate2To3() {
+        var db = helper.createDatabase(TEST_DB, 2)
+
+        // Insert reminder data in version 2
+        db.execSQL(
+            """
+            INSERT INTO reminders (title, note, scheduledAtMillis, isCompleted, createdAtMillis, updatedAtMillis)
+            VALUES ('V2 Title', 'V2 Note', 1500, 0, 800, 800)
+            """.trimIndent()
+        )
+
+        db.close()
+
+        // Migrate to version 3
+        db = helper.runMigrationsAndValidate(TEST_DB, 3, true, ReminderDatabase.MIGRATION_2_3)
+
+        // Verify reminder data is preserved
+        var cursor = db.query("SELECT * FROM reminders ORDER BY id ASC")
+        assertEquals(1, cursor.count)
+        cursor.moveToFirst()
+        assertEquals("V2 Title", cursor.getString(cursor.getColumnIndexOrThrow("title")))
+        assertEquals("V2 Note", cursor.getString(cursor.getColumnIndexOrThrow("note")))
+        assertEquals(1500L, cursor.getLong(cursor.getColumnIndexOrThrow("scheduledAtMillis")))
+        cursor.close()
+
+        // Verify diary_entries table exists and we can insert into it
+        db.execSQL(
+            """
+            INSERT INTO diary_entries (dateKey, content, mood, createdAtMillis, updatedAtMillis)
+            VALUES ('2026-05-21', 'Test diary content', '😊', 1000, 1000)
+            """.trimIndent()
+        )
+
+        cursor = db.query("SELECT * FROM diary_entries")
+        assertEquals(1, cursor.count)
+        cursor.moveToFirst()
+        assertEquals("2026-05-21", cursor.getString(cursor.getColumnIndexOrThrow("dateKey")))
+        assertEquals("Test diary content", cursor.getString(cursor.getColumnIndexOrThrow("content")))
+        assertEquals("😊", cursor.getString(cursor.getColumnIndexOrThrow("mood")))
+        cursor.close()
+
+        // Verify unique constraint on dateKey works (inserting duplicate dateKey should fail)
+        var threwUniqueConstraintException = false
+        try {
+            db.execSQL(
+                """
+                INSERT INTO diary_entries (dateKey, content, mood, createdAtMillis, updatedAtMillis)
+                VALUES ('2026-05-21', 'Another content', '😐', 1001, 1001)
+                """.trimIndent()
+            )
+        } catch (e: Exception) {
+            threwUniqueConstraintException = true
+        }
+        org.junit.Assert.assertTrue("Should throw unique constraint exception for duplicate dateKey", threwUniqueConstraintException)
+
+        db.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate1To3() {
+        var db = helper.createDatabase(TEST_DB, 1)
+
+        // Insert reminder data in version 1
+        db.execSQL(
+            """
+            INSERT INTO reminders (title, note, scheduledAtMillis, isCompleted, createdAtMillis, updatedAtMillis)
+            VALUES ('V1 Title', 'V1 Note', 1200, 0, 700, 700)
+            """.trimIndent()
+        )
+
+        db.close()
+
+        // Migrate from 1 to 3
+        db = helper.runMigrationsAndValidate(
+            TEST_DB,
+            3,
+            true,
+            ReminderDatabase.MIGRATION_1_2,
+            ReminderDatabase.MIGRATION_2_3
+        )
+
+        // Verify reminder data is preserved
+        var cursor = db.query("SELECT * FROM reminders ORDER BY id ASC")
+        assertEquals(1, cursor.count)
+        cursor.moveToFirst()
+        assertEquals("V1 Title", cursor.getString(cursor.getColumnIndexOrThrow("title")))
+        assertEquals("V1 Note", cursor.getString(cursor.getColumnIndexOrThrow("note")))
+        cursor.close()
+
+        // Verify diary_entries table exists
+        cursor = db.query("SELECT * FROM diary_entries")
+        assertEquals(0, cursor.count)
+        cursor.close()
+
+        db.close()
+    }
 }

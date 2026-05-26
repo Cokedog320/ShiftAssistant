@@ -227,6 +227,10 @@ private class FakeCalendarDataStore(initialData: CalendarData) : CalendarDataSto
     override suspend fun clearOverrides() {
         data.value = data.value.copy(overrides = emptyMap())
     }
+
+    override suspend fun clearAll() {
+        data.value = CalendarData()
+    }
 }
 
 

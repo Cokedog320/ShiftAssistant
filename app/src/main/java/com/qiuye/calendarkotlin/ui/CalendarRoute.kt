@@ -44,7 +44,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.qiuye.calendarkotlin.tasks.ui.viewmodel.TasksViewModel
 import kotlinx.coroutines.launch
 import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
-import com.qiuye.calendarkotlin.diary.ui.DiaryEditBottomSheet
 import com.qiuye.calendarkotlin.diary.ui.DiaryListBottomSheet
 
 private val pagerStartMonth: YearMonth = YearMonth.of(1, 1)
@@ -57,7 +56,8 @@ fun CalendarRoute(
     diaryViewModel: DiaryViewModel = viewModel(),
     onNavigateToEditTask: (Long) -> Unit,
     onNavigateToNewTaskWithDate: (Long) -> Unit,
-    onNavigateToNewTask: () -> Unit
+    onNavigateToNewTask: () -> Unit,
+    onNavigateToDiaryEdit: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val reminders by tasksViewModel.reminders.collectAsStateWithLifecycle()
@@ -84,8 +84,12 @@ fun CalendarRoute(
         onCloseRemindersCenter = viewModel::closeReminders,
         onOpenDiaryList = viewModel::openDiaryList,
         onCloseDiaryList = viewModel::closeDiaryList,
-        onOpenDiaryEdit = viewModel::openDiaryEdit,
-        onCloseDiaryEdit = viewModel::closeDiaryEdit,
+        onOpenDiaryEdit = {
+            val selected = uiState.selectedDate
+            if (selected != null) {
+                onNavigateToDiaryEdit(selected.toString())
+            }
+        },
         onSearchDiary = diaryViewModel::setSearchQuery,
         onSaveDiary = { date, content, mood -> diaryViewModel.saveDiary(date.toString(), content, mood) },
         onDeleteDiary = { date -> diaryViewModel.deleteDiary(date.toString()) },
@@ -124,7 +128,8 @@ fun CalendarRoute(
             val dateMillis = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
             onNavigateToNewTaskWithDate(dateMillis)
         },
-        onAddNewReminder = onNavigateToNewTask
+        onAddNewReminder = onNavigateToNewTask,
+        onNavigateToDiaryEdit = onNavigateToDiaryEdit
     )
 }
 
@@ -148,7 +153,6 @@ private fun CalendarScreen(
     onOpenDiaryList: () -> Unit,
     onCloseDiaryList: () -> Unit,
     onOpenDiaryEdit: () -> Unit,
-    onCloseDiaryEdit: () -> Unit,
     onSearchDiary: (String) -> Unit,
     onSaveDiary: (java.time.LocalDate, String, String) -> Unit,
     onDeleteDiary: (java.time.LocalDate) -> Unit,
@@ -164,6 +168,7 @@ private fun CalendarScreen(
     onNavigateToEditTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
     onNavigateToNewTaskWithDate: (java.time.LocalDate) -> Unit,
     onAddNewReminder: () -> Unit,
+    onNavigateToDiaryEdit: (String) -> Unit
 ) {
     val palette = seasonPaletteFor(uiState.currentMonth.monthValue)
     val coroutineScope = rememberCoroutineScope()
@@ -372,9 +377,6 @@ private fun CalendarScreen(
                             reminderDate == selected
                         }
                     }
-                    val diaryEntry = remember(selected, diaryEntries) {
-                        diaryEntries.firstOrNull { it.dateKey == selected.toString() }
-                    }
                     DayDetailBottomSheet(
                         date = selected,
                         currentShift = CalendarCalculator.getShiftForDate(selected, uiState.calendarData),
@@ -385,7 +387,6 @@ private fun CalendarScreen(
                         holidayName = selectedCell?.holiday?.name,
                         holidayLabel = selectedCell?.holiday?.label,
                         tasks = dateReminders,
-                        diaryEntry = diaryEntry,
                         onDismiss = onCloseDaySheet,
                         onSave = { note, shift -> onSaveDayDetail(selected, note, shift) },
                         onToggleTask = onToggleTask,
@@ -397,8 +398,7 @@ private fun CalendarScreen(
                         onAddFullReminder = {
                             onCloseDaySheet()
                             onNavigateToNewTaskWithDate(selected)
-                        },
-                        onOpenDiaryEdit = onOpenDiaryEdit
+                        }
                     )
                 }
             } else if (uiState.isDiaryListVisible) {
@@ -408,32 +408,15 @@ private fun CalendarScreen(
                     searchResults = diarySearchResults,
                     onSearchQueryChanged = onSearchDiary,
                     onDismiss = onCloseDiaryList,
+                    onWriteDiaryClick = {
+                        onCloseDiaryList()
+                        onNavigateToDiaryEdit(java.time.LocalDate.now().toString())
+                    },
                     onSelectDate = { date ->
                         onCloseDiaryList()
-                        onJumpToDate(date)
+                        onNavigateToDiaryEdit(date.toString())
                     }
                 )
-            } else if (uiState.isDiaryEditVisible) {
-                uiState.selectedDate?.let { selected ->
-                    val diaryEntry = remember(selected, diaryEntries) {
-                        diaryEntries.firstOrNull { it.dateKey == selected.toString() }
-                    }
-                    DiaryEditBottomSheet(
-                        date = selected,
-                        existingEntry = diaryEntry,
-                        onDismiss = onCloseDiaryEdit,
-                        onSave = { content, mood ->
-                            onSaveDiary(selected, content, mood)
-                            onCloseDiaryEdit()
-                        },
-                        onDelete = if (diaryEntry != null) {
-                            {
-                                onDeleteDiary(selected)
-                                onCloseDiaryEdit()
-                            }
-                        } else null
-                    )
-                }
             }
         }
     }

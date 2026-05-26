@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "cda9d869c07b93b4530402066412aa1a",
+    "identityHash": "65a6c5c618d0e274c2c32062a2f39c05",
     "entities": [
       {
         "tableName": "reminders",
@@ -107,14 +107,24 @@
             "id"
           ]
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "index_diary_entries_dateKey",
+            "unique": true,
+            "columnNames": [
+              "dateKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_diary_entries_dateKey` ON `${TABLE_NAME}` (`dateKey`)"
+          }
+        ],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cda9d869c07b93b4530402066412aa1a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '65a6c5c618d0e274c2c32062a2f39c05')"
     ]
   }
 }

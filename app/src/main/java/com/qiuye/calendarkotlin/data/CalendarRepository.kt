@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.data
+package com.qiuye.calendarkotlin.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -31,6 +31,8 @@ internal interface CalendarDataStore {
     )
 
     suspend fun clearOverrides()
+
+    suspend fun clearAll()
 }
 
 class CalendarRepository(private val context: Context) : CalendarDataStore {
@@ -123,6 +125,12 @@ class CalendarRepository(private val context: Context) : CalendarDataStore {
     override suspend fun clearOverrides() {
         context.calendarDataStore.edit { preferences ->
             preferences.remove(Keys.overrides)
+        }
+    }
+
+    override suspend fun clearAll() {
+        context.calendarDataStore.edit { preferences ->
+            preferences.clear()
         }
     }
 

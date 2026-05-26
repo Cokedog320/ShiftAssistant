@@ -21,7 +21,13 @@ interface DiaryDao {
     @Query("SELECT dateKey FROM diary_entries")
     fun observeAllDateKeys(): Flow<List<String>>
 
-    @Query("SELECT * FROM diary_entries WHERE content LIKE '%' || :query || '%' ORDER BY dateKey DESC")
+    @Query("""
+        SELECT * FROM diary_entries
+        WHERE content LIKE '%' || :query || '%'
+           OR mood LIKE '%' || :query || '%'
+           OR REPLACE(dateKey, '-', '') LIKE '%' || REPLACE(:query, '-', '') || '%'
+        ORDER BY dateKey DESC
+    """)
     fun search(query: String): Flow<List<DiaryEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

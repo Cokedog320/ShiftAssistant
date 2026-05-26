@@ -36,6 +36,8 @@ import com.qiuye.calendarkotlin.tasks.scheduler.ExactAlarmPermission
 import com.qiuye.calendarkotlin.tasks.ui.navigation.ReminderRoutes
 import com.qiuye.calendarkotlin.tasks.ui.screen.EditTaskScreen
 import com.qiuye.calendarkotlin.tasks.ui.viewmodel.TasksViewModel
+import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
+import com.qiuye.calendarkotlin.diary.ui.DiaryEditScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -93,6 +95,7 @@ class MainActivity : ComponentActivity() {
 private fun MainNavigation(
     calendarViewModel: CalendarViewModel,
     tasksViewModel: TasksViewModel = viewModel(),
+    diaryViewModel: DiaryViewModel = viewModel(),
     openReminderIdFlow: kotlinx.coroutines.flow.StateFlow<Long?>,
     onConsumeOpenReminder: () -> Unit
 ) {
@@ -150,6 +153,7 @@ private fun MainNavigation(
             CalendarRoute(
                 viewModel = calendarViewModel,
                 tasksViewModel = tasksViewModel,
+                diaryViewModel = diaryViewModel,
                 onNavigateToEditTask = { reminderId ->
                     navController.navigate(ReminderRoutes.edit(reminderId))
                 },
@@ -158,6 +162,9 @@ private fun MainNavigation(
                 },
                 onNavigateToNewTask = {
                     navController.navigate(ReminderRoutes.EDIT_NEW)
+                },
+                onNavigateToDiaryEdit = { dateKey ->
+                    navController.navigate(ReminderRoutes.diaryEdit(dateKey))
                 }
             )
         }
@@ -232,6 +239,20 @@ private fun MainNavigation(
                 },
                 onLoadReminder = { id ->
                     tasksViewModel.loadReminder(id)
+                }
+            )
+        }
+
+        composable(
+            route = ReminderRoutes.DIARY_EDIT,
+            arguments = listOf(navArgument(ReminderRoutes.DIARY_EDIT_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val dateKey = backStackEntry.arguments?.getString(ReminderRoutes.DIARY_EDIT_ARG) ?: ""
+            DiaryEditScreen(
+                dateKey = dateKey,
+                viewModel = diaryViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

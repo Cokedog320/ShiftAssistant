@@ -71,11 +71,12 @@ abstract class ReminderDatabase : RoomDatabase() {
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         dateKey TEXT NOT NULL,
                         content TEXT NOT NULL,
-                        mood TEXT NOT NULL DEFAULT '',
+                        mood TEXT NOT NULL,
                         createdAtMillis INTEGER NOT NULL,
                         updatedAtMillis INTEGER NOT NULL
                     )
                 """.trimIndent())
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_diary_entries_dateKey ON diary_entries (dateKey)")
             }
         }
 
