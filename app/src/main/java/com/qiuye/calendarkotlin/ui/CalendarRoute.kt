@@ -136,7 +136,8 @@ fun CalendarRoute(
             onNavigateToNewTaskWithDate(dateMillis)
         },
         onAddNewReminder = onNavigateToNewTask,
-        onNavigateToDiaryEdit = onNavigateToDiaryEdit
+        onNavigateToDiaryEdit = onNavigateToDiaryEdit,
+        onDeleteNote = viewModel::deleteNote
     )
 }
 
@@ -175,7 +176,8 @@ private fun CalendarScreen(
     onNavigateToEditTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
     onNavigateToNewTaskWithDate: (java.time.LocalDate) -> Unit,
     onAddNewReminder: () -> Unit,
-    onNavigateToDiaryEdit: (String) -> Unit
+    onNavigateToDiaryEdit: (String) -> Unit,
+    onDeleteNote: (java.time.LocalDate) -> Unit
 ) {
     val palette = seasonPaletteFor(uiState.currentMonth.monthValue)
     val coroutineScope = rememberCoroutineScope()
@@ -402,11 +404,13 @@ private fun CalendarScreen(
                     noteEntries = uiState.noteEntries,
                     showLunar = uiState.calendarData.showLunar,
                     reminders = reminders,
+                    accentColor = palette.accent,
                     onDismiss = onCloseNotes,
                     onSelectNoteDate = { date ->
                         onCloseNotes()
                         onJumpToDate(date)
                     },
+                    onDeleteNote = onDeleteNote,
                 )
             } else if (uiState.isRemindersVisible) {
                 RemindersBottomSheet(

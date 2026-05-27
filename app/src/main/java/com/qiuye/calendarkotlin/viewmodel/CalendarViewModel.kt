@@ -212,6 +212,18 @@ class CalendarViewModel internal constructor(
         }
     }
 
+    fun deleteNote(date: LocalDate) {
+        viewModelScope.launch {
+            val dateKey = date.toStorageKey()
+            val currentOverride = calendarDataWithNotes.value.calendarData.overrides[dateKey]
+            repository.updateDetail(
+                dateKey = dateKey,
+                note = "",
+                overrideShift = currentOverride,
+            )
+        }
+    }
+
     fun saveSettings(
         cycleStartDate: String?,
         cycleEndDate: String?,

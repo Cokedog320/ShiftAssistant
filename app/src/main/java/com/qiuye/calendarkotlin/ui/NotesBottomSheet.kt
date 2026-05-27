@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,10 +18,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +37,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -70,13 +78,17 @@ fun NotesBottomSheet(
     noteEntries: List<NoteEntry>,
     showLunar: Boolean,
     reminders: List<ReminderEntity>,
+    accentColor: Color,
     onDismiss: () -> Unit,
     onSelectNoteDate: (LocalDate) -> Unit,
+    onDeleteNote: (LocalDate) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var keyword by remember { mutableStateOf("") }
     var selectedMonth by remember { mutableStateOf<YearMonth?>(null) }
     var selectedScope by remember { mutableStateOf(NoteScope.ALL) }
+    var selectedNoteEntry by remember { mutableStateOf<NoteEntry?>(null) }
+    var showDeleteConfirmDialog by remember { mutableStateOf<NoteEntry?>(null) }
     val months = remember(noteEntries) {
         noteEntries.map { it.month }.distinct().sortedDescending()
     }
@@ -133,8 +145,25 @@ fun NotesBottomSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (selectedNoteEntry != null) {
+                            IconButton(
+                                onClick = { showDeleteConfirmDialog = selectedNoteEntry },
+                                modifier = Modifier.testTag("btn_notes_delete")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = "删除备注",
+                                    tint = Color(0xFFD32F2F)
+                                )
+                            }
+                        }
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                        }
                     }
                 }
             }
@@ -241,14 +270,53 @@ fun NotesBottomSheet(
                 }
             } else {
                 items(filteredEntries, key = { it.date.toString() }) { entry ->
+                    val isSelected = selectedNoteEntry?.date == entry.date
                     NoteItemCard(
                         entry = entry,
                         showLunar = showLunar,
                         reminders = reminders,
-                        onClick = { onSelectNoteDate(entry.date) },
+                        accentColor = accentColor,
+                        isSelected = isSelected,
+                        onClick = {
+                            onSelectNoteDate(entry.date)
+                        },
+                        onSelectToggle = {
+                            selectedNoteEntry = if (isSelected) null else entry
+                        }
                     )
                 }
             }
+        }
+
+        if (showDeleteConfirmDialog != null) {
+            val entry = showDeleteConfirmDialog!!
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmDialog = null },
+                title = { Text("删除确认") },
+                text = { Text("确定要删除 ${entry.date} 的这篇备注吗？") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onDeleteNote(entry.date)
+                            if (selectedNoteEntry?.date == entry.date) {
+                                selectedNoteEntry = null
+                            }
+                            showDeleteConfirmDialog = null
+                        },
+                        modifier = Modifier.testTag("btn_dialog_confirm")
+                    ) {
+                        Text("确定", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteConfirmDialog = null },
+                        modifier = Modifier.testTag("btn_dialog_cancel")
+                    ) {
+                        Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            )
         }
     }
 }
@@ -287,7 +355,10 @@ private fun NoteItemCard(
     entry: NoteEntry,
     showLunar: Boolean,
     reminders: List<ReminderEntity>,
+    accentColor: Color,
+    isSelected: Boolean,
     onClick: () -> Unit,
+    onSelectToggle: () -> Unit,
 ) {
     val dateReminders = remember(entry.date, reminders) {
         reminders.filter { reminder ->
@@ -301,6 +372,7 @@ private fun NoteItemCard(
     Surface(
         shape = RoundedCornerShape(22.dp),
         color = Color.White.copy(alpha = 0.9f),
+        border = if (isSelected) BorderStroke(1.5.dp, accentColor) else null,
         modifier = Modifier
             .fillMaxWidth()
             .testTag("note_item_${entry.date}")
@@ -312,28 +384,74 @@ private fun NoteItemCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = entry.date.format(noteDateFormatter),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = entry.text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                // Checkbox selector on the left
+                Box(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(22.dp)
+                        .drawBehind {
+                            val strokeWidth = 2.dp.toPx()
+                            if (isSelected) {
+                                drawCircle(
+                                    color = accentColor,
+                                    radius = size.minDimension / 2
+                                )
+                                // Draw checkmark
+                                val checkColor = Color.White
+                                val path = androidx.compose.ui.graphics.Path().apply {
+                                    moveTo(size.width * 0.28f, size.height * 0.48f)
+                                    lineTo(size.width * 0.45f, size.height * 0.65f)
+                                    lineTo(size.width * 0.72f, size.height * 0.32f)
+                                }
+                                drawPath(
+                                    path = path,
+                                    color = checkColor,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                        width = 2.dp.toPx(),
+                                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                                        join = androidx.compose.ui.graphics.StrokeJoin.Round
+                                    )
+                                )
+                            } else {
+                                drawCircle(
+                                    color = Color.LightGray,
+                                    radius = (size.minDimension - strokeWidth) / 2,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                                )
+                            }
+                        }
+                        .clickable(onClick = onSelectToggle)
+                        .testTag("note_checkbox_${entry.date}")
+                )
+
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = entry.date.format(noteDateFormatter),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = entry.text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
 
             FlowRow(
