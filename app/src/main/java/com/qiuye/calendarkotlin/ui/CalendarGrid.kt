@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -103,8 +104,9 @@ private fun DayCellCard(
         modifier = modifier
             .testTag("day_cell_${dayCell.date}")
             .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
-        color = if (dayCell.inCurrentMonth) Color.White.copy(alpha = 0.95f) else Color.White.copy(alpha = 0.5f),
+            .clickable(onClick = onClick)
+            .alpha(if (dayCell.inCurrentMonth) 1f else 0.35f),
+        color = Color.White.copy(alpha = 0.95f),
         shape = RoundedCornerShape(20.dp),
         tonalElevation = if (dayCell.isSelected || dayCell.isToday) 4.dp else 0.dp,
     ) {
