@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +60,7 @@ fun DiaryListBottomSheet(
     onSelectDate: (LocalDate) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
 
     val displayedEntries = remember(entries, searchQuery, searchResults) {
         if (searchQuery.isBlank()) entries else searchResults
@@ -112,7 +115,12 @@ fun DiaryListBottomSheet(
             // Write Diary Button
             item {
                 Button(
-                    onClick = onWriteDiaryClick,
+                    onClick = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            onWriteDiaryClick()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("btn_write_diary"),
@@ -198,8 +206,11 @@ fun DiaryListBottomSheet(
                     DiaryItemCard(
                         entry = entry,
                         onClick = {
-                            val parsedDate = LocalDate.parse(entry.dateKey)
-                            onSelectDate(parsedDate)
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                val parsedDate = LocalDate.parse(entry.dateKey)
+                                onSelectDate(parsedDate)
+                            }
                         }
                     )
                 }

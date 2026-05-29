@@ -129,15 +129,36 @@ private fun DayCellCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                if (dayCell.holiday != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(14.dp),
-                        contentAlignment = Alignment.TopEnd,
-                    ) {
+                // Top row for Shift Tag (Left) and Holiday Tag (Right)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp),
+                ) {
+                    if (dayCell.shift != null && shiftPalette != null) {
                         Box(
                             modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .clip(RoundedCornerShape(bottomEnd = 8.dp, topStart = 10.dp))
+                                .background(shiftPalette.container)
+                                .padding(horizontal = 5.dp, vertical = 1.5.dp),
+                        ) {
+                            Text(
+                                text = dayCell.shift.monthGridLabel(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 9.5.sp,
+                                    lineHeight = 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = shiftPalette.content,
+                            )
+                        }
+                    }
+
+                    if (dayCell.holiday != null) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
                                 .clip(RoundedCornerShape(bottomStart = 8.dp, topEnd = 10.dp))
                                 .background(
                                     if (dayCell.holiday.isWorkday) Color(0xFFE7EDF4) else Color(0xFFFFE2E2),
@@ -151,8 +172,6 @@ private fun DayCellCard(
                             )
                         }
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(14.dp))
                 }
 
                 Box(
@@ -197,15 +216,6 @@ private fun DayCellCard(
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                if (dayCell.shift != null && shiftPalette != null) {
-                    ShiftBadge(
-                        shift = dayCell.shift,
-                        palette = shiftPalette,
-                    )
-                } else {
-                    Spacer(modifier = Modifier.height(18.dp))
-                }
-
                 if (dayCell.hasNote || dayCell.hasReminder || dayCell.hasDiary) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -241,48 +251,6 @@ private fun DayCellCard(
     }
 }
 
-@Composable
-private fun ShiftBadge(
-    shift: ShiftDefinition,
-    palette: ShiftPalette,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier
-            .wrapContentWidth(Alignment.CenterHorizontally)
-            .height(18.dp)
-            .widthIn(min = 32.dp),
-        shape = RoundedCornerShape(999.dp),
-        color = palette.container.copy(alpha = 0.96f),
-        border = BorderStroke(1.dp, palette.content.copy(alpha = 0.16f)),
-        tonalElevation = 0.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 4.dp, end = 6.dp, top = 1.dp, bottom = 1.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(5.dp)
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(palette.content.copy(alpha = 0.9f)),
-            )
-            Text(
-                text = shift.monthGridLabel(),
-                maxLines = 1,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 10.sp,
-                    lineHeight = 10.sp,
-                ),
-                fontWeight = FontWeight.Bold,
-                color = palette.content,
-            )
-        }
-    }
-}
 
 private fun ShiftDefinition.monthGridLabel(): String = when (name) {
     "白班" -> "白"
