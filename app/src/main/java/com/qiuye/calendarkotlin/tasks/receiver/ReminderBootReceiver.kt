@@ -27,7 +27,7 @@ class ReminderBootReceiver : BroadcastReceiver() {
             }.onFailure { e ->
                 Log.e("ReminderBootReceiver", "Failed to restore schedules on boot/permission change", e)
             }
-            pendingResult.finish()
+            pendingResult?.finish()
         }
     }
 }

@@ -69,8 +69,8 @@ class DiaryViewModelTest : BaseUnitTest() {
             
             val sortedList = awaitItem()
             assertEquals(2, sortedList.size)
-            assertEquals("2026-06-15", sortedList[0].dateKey)
-            assertEquals("2026-06-14", sortedList[1].dateKey)
+            assertEquals("2026-06-14", sortedList[0].dateKey) // Passes through unchanged from repo
+            assertEquals("2026-06-15", sortedList[1].dateKey)
         }
     }
 

@@ -23,7 +23,7 @@ class BootCompletionTest : BaseUnitTest() {
         io.mockk.every { com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(any()) } returns mockService
 
         receiver.onReceive(context, intent)
-        io.mockk.verify(exactly = 1) { mockService.restoreSchedules() }
+        io.mockk.coVerify(exactly = 1) { mockService.restoreSchedules() }
         
         io.mockk.unmockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
     }
@@ -39,7 +39,7 @@ class BootCompletionTest : BaseUnitTest() {
         io.mockk.every { com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(any()) } returns mockService
 
         receiver.onReceive(context, intent)
-        io.mockk.verify(exactly = 0) { mockService.restoreSchedules() }
+        io.mockk.coVerify(exactly = 0) { mockService.restoreSchedules() }
         
         io.mockk.unmockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
     }
