@@ -22,6 +22,10 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -49,7 +53,10 @@ android {
 
     sourceSets {
         getByName("androidTest") {
-            assets.srcDirs(files("$projectDir/schemas"))
+            assets.srcDirs("$projectDir/schemas")
+        }
+        getByName("test") {
+            assets.srcDirs("$projectDir/schemas")
         }
     }
 }
@@ -88,6 +95,11 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
+    testImplementation(libs.mockk)
+    testImplementation(libs.androidx.test.core.ktx)
+    testImplementation(libs.androidx.test.ext.junit.ktx)
+    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

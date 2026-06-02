@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.tasks.service
+package com.qiuye.calendarkotlin.tasks.service
 
 import androidx.room.Room
 import com.qiuye.calendarkotlin.tasks.data.ReminderDatabase
@@ -16,9 +16,9 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import java.util.concurrent.CopyOnWriteArrayList
+import com.qiuye.calendarkotlin.BaseUnitTest
 
-@RunWith(RobolectricTestRunner::class)
-class ReminderServiceTest {
+class ReminderServiceTest : BaseUnitTest() {
     private lateinit var database: ReminderDatabase
     private lateinit var repository: ReminderRepository
     private lateinit var scheduler: RecordingScheduler
