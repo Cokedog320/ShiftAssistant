@@ -14,6 +14,20 @@ class ShiftConfigRepositoryTest : BaseUnitTest() {
 
     private lateinit var repository: CalendarRepository
 
+    @Test
+    fun `clearAll should reset all to default`() = runBlocking {
+        val pattern = listOf(ShiftDefinition("1", "Day", ShiftColorOption.BLUE))
+        repository.updateSettings("2024-01-01", "2024-12-31", pattern, false)
+        repository.clearAll()
+        val data = repository.calendarData.first()
+        assertTrue(data.showLunar)
+        assertNull(data.cycleStartDate)
+        assertNull(data.cycleEndDate)
+        assertTrue(data.notes.isEmpty())
+        assertTrue(data.overrides.isEmpty())
+        assertTrue(data.pattern.isNotEmpty())
+    }
+
     @Before
     fun setUp() = runBlocking {
         repository = CalendarRepository(ApplicationProvider.getApplicationContext())

@@ -12,6 +12,19 @@ class NoteRepositoryTest : BaseUnitTest() {
 
     private lateinit var repository: CalendarRepository
 
+    @Test
+    fun `clearAll should reset all to default`() = runBlocking {
+        repository.updateDetail("2024-01-01", "New Year Note", null)
+        repository.clearAll()
+        val data = repository.calendarData.first()
+        assertTrue(data.showLunar)
+        assertNull(data.cycleStartDate)
+        assertNull(data.cycleEndDate)
+        assertTrue(data.notes.isEmpty())
+        assertTrue(data.overrides.isEmpty())
+        assertTrue(data.pattern.isNotEmpty())
+    }
+
     @Before
     fun setUp() = runBlocking {
         repository = CalendarRepository(ApplicationProvider.getApplicationContext())
