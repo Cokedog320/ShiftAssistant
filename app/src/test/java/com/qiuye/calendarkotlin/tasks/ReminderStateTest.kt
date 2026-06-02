@@ -34,8 +34,10 @@ class ReminderStateTest : BaseUnitTest() {
     fun setUp() {
         MockHelpers.initMocks(this)
         every { scheduler.canScheduleExactAlarms() } returns true
-        service = ReminderService(repository, scheduler, context, {true}, {_,_->true}, {_,_->})
-    }
+        val hasExactAlarmPermission: () -> Boolean = { true }
+        val requestExactAlarmPermission: (Context, String) -> Boolean = { _, _ -> true }
+        val showPermissionRationale: (Context, String) -> Unit = { _, _ -> }
+        service = ReminderService(repository, scheduler, context, hasExactAlarmPermission, requestExactAlarmPermission, showPermissionRationale)
 
     @Test
     fun `setReminderCompleted should update state to completed and cancel schedule`() = runBlocking {
@@ -67,7 +69,7 @@ class ReminderStateTest : BaseUnitTest() {
         val result = service.saveReminder(null, "Task", "", futureTime, false)
 
         // Then
-        verify { scheduler.reschedule(any()) }
+        verify { scheduler.reschedule(match { it.id == 2L && it.title == "Task" }) }
         assertEquals(true, result is com.qiuye.calendarkotlin.tasks.service.SaveReminderResult.Success)
     }
     

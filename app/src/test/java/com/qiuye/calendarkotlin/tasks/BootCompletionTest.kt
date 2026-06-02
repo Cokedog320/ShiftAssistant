@@ -18,15 +18,14 @@ class BootCompletionTest : BaseUnitTest() {
         val receiver = ReminderBootReceiver()
         val intent = Intent(Intent.ACTION_BOOT_COMPLETED)
         
-        // Since TasksGraph provides Singletons and CoroutineScope is used, 
-        // we mainly verify it doesn't crash and returns gracefully when called.
-        // A deeper test would mock TasksGraph or inject a fake service.
-        try {
-            receiver.onReceive(context, intent)
-            assertTrue(true) // Should reach here without exception
-        } catch (e: Exception) {
-            fail("BootReceiver should not throw exception on boot intent")
-        }
+        io.mockk.mockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
+        val mockService = io.mockk.mockk<com.qiuye.calendarkotlin.tasks.service.ReminderService>(relaxed = true)
+        io.mockk.every { com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(any()) } returns mockService
+
+        receiver.onReceive(context, intent)
+        io.mockk.verify(exactly = 1) { mockService.restoreAlarmsOnBoot() }
+        
+        io.mockk.unmockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
     }
 
     @Test
@@ -35,11 +34,13 @@ class BootCompletionTest : BaseUnitTest() {
         val receiver = ReminderBootReceiver()
         val intent = Intent(Intent.ACTION_BATTERY_LOW)
         
-        try {
-            receiver.onReceive(context, intent)
-            assertTrue(true)
-        } catch (e: Exception) {
-            fail("Should ignore other intents")
-        }
+        io.mockk.mockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
+        val mockService = io.mockk.mockk<com.qiuye.calendarkotlin.tasks.service.ReminderService>(relaxed = true)
+        io.mockk.every { com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(any()) } returns mockService
+
+        receiver.onReceive(context, intent)
+        io.mockk.verify(exactly = 0) { mockService.restoreAlarmsOnBoot() }
+        
+        io.mockk.unmockkObject(com.qiuye.calendarkotlin.tasks.TasksGraph)
     }
 }

@@ -57,6 +57,9 @@ class DataStoreTest : BaseUnitTest() {
         val data = repository.calendarData.first()
         assertTrue(data.showLunar) // default
         assertNull(data.cycleStartDate)
-        assertNull(data.notes["2024-01-01"])
+        assertNull(data.cycleEndDate)
+        assertTrue(data.notes.isEmpty())
+        assertTrue(data.overrides.isEmpty())
+        assertEquals(4, data.pattern.size)
     }
 }

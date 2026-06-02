@@ -65,7 +65,7 @@ class DiaryViewModelTest : BaseUnitTest() {
             
             // Add another one
             val entity2 = DiaryEntity(2, "2026-06-14", "Earlier notes", "Neutral", 900, 900)
-            allEntriesFlow.value = listOf(entity1, entity2).sortedByDescending { it.dateKey }
+            allEntriesFlow.value = listOf(entity2, entity1)
             
             val sortedList = awaitItem()
             assertEquals(2, sortedList.size)
@@ -84,6 +84,7 @@ class DiaryViewModelTest : BaseUnitTest() {
             assertTrue(initial.isEmpty())
 
             viewModel.setSearchQuery("Kotlin")
+            advanceUntilIdle() // Wait for debounce and search flow to complete
             
             val results = awaitItem()
             assertEquals(1, results.size)

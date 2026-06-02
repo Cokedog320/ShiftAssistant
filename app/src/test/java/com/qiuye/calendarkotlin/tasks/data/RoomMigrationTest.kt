@@ -37,8 +37,8 @@ class RoomMigrationTest : BaseUnitTest() {
         db = helper.runMigrationsAndValidate(TEST_DB, 2, true, ReminderDatabase.MIGRATION_1_2)
 
         val cursor = db.query("SELECT * FROM reminders WHERE id = 1")
-        assert(cursor.moveToFirst())
-        assert(cursor.getString(cursor.getColumnIndexOrThrow("title")) == "Test V1")
+        assertTrue(cursor.moveToFirst())
+        assertEquals("Test V1", cursor.getString(cursor.getColumnIndexOrThrow("title")))
         cursor.close()
     }
 
@@ -58,7 +58,7 @@ class RoomMigrationTest : BaseUnitTest() {
         db = helper.runMigrationsAndValidate(TEST_DB, 3, true, ReminderDatabase.MIGRATION_2_3)
 
         val cursor = db.query("SELECT * FROM diary_entries")
-        assert(!cursor.moveToFirst())
+        assertFalse(cursor.moveToFirst())
         cursor.close()
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.tasks.data
+package com.qiuye.calendarkotlin.tasks.data
 
 import java.time.Instant
 import java.time.LocalDateTime
@@ -19,27 +19,24 @@ fun formatTime(millis: Long): String =
 fun formatDateTime(millis: Long): String =
     Instant.ofEpochMilli(millis).atZone(zoneIdProvider()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault()))
 
-fun startOfDayMillis(millis: Long): Long {
-    val zoneId = zoneIdProvider()
+fun startOfDayMillis(millis: Long, zoneId: ZoneId = zoneIdProvider()): Long {
     val localDate = Instant.ofEpochMilli(millis).atZone(zoneId).toLocalDate()
     return localDate.atStartOfDay(zoneId).toInstant().toEpochMilli()
 }
 
-fun minutesOfDay(millis: Long): Int {
-    val time = Instant.ofEpochMilli(millis).atZone(zoneIdProvider()).toLocalTime()
+fun minutesOfDay(millis: Long, zoneId: ZoneId = zoneIdProvider()): Int {
+    val time = Instant.ofEpochMilli(millis).atZone(zoneId).toLocalTime()
     return time.hour * 60 + time.minute
 }
 
-fun combineDateAndMinutes(dateStartOfDayMillis: Long, minutesOfDay: Int): Long {
-    val zoneId = zoneIdProvider()
+fun combineDateAndMinutes(dateStartOfDayMillis: Long, minutesOfDay: Int, zoneId: ZoneId = zoneIdProvider()): Long {
     val localDate = Instant.ofEpochMilli(dateStartOfDayMillis).atZone(zoneId).toLocalDate()
     val hour = minutesOfDay / 60
     val minute = minutesOfDay % 60
     return localDate.atTime(hour, minute).atZone(zoneId).toInstant().toEpochMilli()
 }
 
-fun roundedUpFiveMinuteSlot(nowMillis: Long = System.currentTimeMillis()): Pair<Long, Int> {
-    val zoneId = zoneIdProvider()
+fun roundedUpFiveMinuteSlot(nowMillis: Long = System.currentTimeMillis(), zoneId: ZoneId = zoneIdProvider()): Pair<Long, Int> {
     val current = Instant.ofEpochMilli(nowMillis).atZone(zoneId)
     val totalMinutes = current.hour * 60 + current.minute
     val roundedMinutes = ((totalMinutes + 4) / 5) * 5
