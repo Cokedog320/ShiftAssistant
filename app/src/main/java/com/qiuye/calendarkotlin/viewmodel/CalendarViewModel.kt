@@ -289,7 +289,7 @@ class CalendarViewModel internal constructor(
                 month = YearMonth.from(date),
                 shift = CalendarCalculator.getShiftForDate(date, calendarData),
                 lunarLabel = if (calendarData.showLunar) {
-                    ChineseCalendarInfo.getLunarDisplay(date).label
+                    ChineseCalendarInfo.getCleanLunarLabel(date)
                 } else {
                     ""
                 },
