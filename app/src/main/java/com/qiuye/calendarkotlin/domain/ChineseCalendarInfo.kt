@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.domain
+package com.qiuye.calendarkotlin.domain
 
 import android.content.Context
 import android.util.Log
@@ -111,6 +111,34 @@ object ChineseCalendarInfo {
         } catch (e: Exception) {
             Log.e("ChineseCalendarInfo", "获取农历失败: date=$date", e)
             return LunarDisplay(label = "", fullText = "")
+        }
+    }
+
+    fun getCleanLunarLabel(date: LocalDate): String {
+        try {
+            val solar = Solar.fromYmd(date.year, date.monthValue, date.dayOfMonth)
+            val lunar = solar.lunar
+            val monthDay = "${lunar.monthInChinese}月${lunar.dayInChinese}"
+            
+            val validJieQi = lunar.jieQi?.takeIf { it.isNotBlank() }
+            val validFestival = lunar.festivals?.firstOrNull { it.isNotBlank() } ?: solar.festivals?.firstOrNull { it.isNotBlank() }
+            
+            val specialText = buildString {
+                validJieQi?.let { append(it) }
+                validFestival?.let {
+                    if (isNotEmpty()) append(" · ")
+                    append(it)
+                }
+            }
+            
+            return if (specialText.isNotBlank()) {
+                "$monthDay · $specialText"
+            } else {
+                monthDay
+            }
+        } catch (e: Exception) {
+            Log.e("ChineseCalendarInfo", "获取清洗后的农历标签失败: date=$date", e)
+            return ""
         }
     }
 
