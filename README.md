@@ -19,9 +19,13 @@
   - 移除了原有的同步等待 Compose Snackbar 消失（约 4 秒）与人为设定的延迟。
   - 引入了非阻塞的 Android 系统原生 `Toast` 提示反馈（在保存成功且存在权限异常时，自动调整为长提示）。
   - 实现点击“保存”后 **0 毫秒延迟** 即刻返回日历主界面，而提示信息仍会完美悬浮在主屏幕下方，提供了极佳的响应速度与交互连贯性。
+- 📅 **农历与节日标签清洗规范化**：
+  - 规范化了备忘录中心（Notes Center）列表卡片中的农历标签。解决了以往“农历与公历节日组合显示时，公历节日被错误加上‘农历’前缀，且内容在卡片上容易折行”的视觉缺陷。
+  - 重构为在单行内优雅地显示农历日期与对应的节日/节气（如 `二月十二 · 消费者权益日`），去除了冗余前缀。
 - 🧪 **完整单元测试与集成测试套件**：
   - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 60+。
-  - 包括 Room 数据库多版本升迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
+  - 新增了对 `ChineseCalendarInfo.getCleanLunarLabel` 格式化转换器的全方位测试覆盖，包括普通日期、节气和公历节日场景。
+  - 包括 Room 数据库多版本迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
 
 ### 现在能做什么
 
@@ -83,8 +87,12 @@ This repository serves as a reliable, clean, and highly robust daily utility too
   - Eliminated the previous coroutine suspension block where the app had to wait for the Compose Snackbar to dismiss (~4 seconds) before navigating back.
   - Replaced it with Android's system-level `Toast` (which automatically uses `LENGTH_LONG` for permission warnings and `LENGTH_SHORT` for normal saves).
   - The edit screen now navigates back **with 0ms delay** as soon as the user taps "Save", while the Toast message floats smoothly on top of the destination screen.
+- 📅 **Clean Lunar & Holiday Label Formatting**:
+  - Pinned down lunar label rendering inside the Notes Center cards. Resolved issues where solar holidays were wrongly prefixed with "Lunar" and texts wrapped lines awkwardly.
+  - Renders clean, single-line combinations of lunar dates, solar terms, and holiday markers (e.g. `二月十二 · 消费者权益日`) without redundant prefixes.
 - 🧪 **Comprehensive Test Suite**:
   - Created a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 60+ verified test cases.
+  - Added full test coverage for the `ChineseCalendarInfo.getCleanLunarLabel` utility to verify formatting rules against standard dates, solar terms, and solar holidays.
   - Features multi-version Room migration testing, local DataStore Preferences serialization validation, Turbine-based `StateFlow` assertions, and end-to-end Compose UI test cases to guarantee zero regressions.
 
 ### Key Features
