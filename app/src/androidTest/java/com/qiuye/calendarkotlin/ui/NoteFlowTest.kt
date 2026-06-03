@@ -77,6 +77,9 @@ class NoteFlowTest {
             )
         }
 
+        // Click checkbox to select the note
+        composeTestRule.onNodeWithTag("note_checkbox_$testDate").performClick()
+
         // Click delete button on the note card
         composeTestRule.onNodeWithTag("btn_notes_delete_$testDate").performClick()
 
