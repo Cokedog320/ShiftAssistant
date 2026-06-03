@@ -35,4 +35,22 @@ class LunarConverterTest : BaseUnitTest() {
         assertNotNull(display.label)
         assertTrue(display.fullText.contains("年") && display.fullText.contains("月"))
     }
+
+    @Test
+    fun `getCleanLunarLabel should format lunar label correctly for various scenarios`() {
+        // 1. Regular day (no festival, e.g. 2024-03-13 is Feb 4th in Lunar)
+        val dateNormal = LocalDate.of(2024, 3, 13)
+        val labelNormal = ChineseCalendarInfo.getCleanLunarLabel(dateNormal)
+        assertEquals("二月初四", labelNormal)
+
+        // 2. Solar Term (Qingming on 2024-04-04)
+        val dateJieQi = LocalDate.of(2024, 4, 4) // Feb 26th in Lunar
+        val labelJieQi = ChineseCalendarInfo.getCleanLunarLabel(dateJieQi)
+        assertTrue("Label should contain lunar date and Qingming term: $labelJieQi", labelJieQi.contains("二月廿六") && labelJieQi.contains("清明"))
+
+        // 3. Solar holiday (3.15 Consumer Rights Day)
+        val dateSolarHoliday = LocalDate.of(2024, 3, 15) // Feb 6th in Lunar
+        val labelSolarHoliday = ChineseCalendarInfo.getCleanLunarLabel(dateSolarHoliday)
+        assertTrue("Label should contain lunar date and Consumer Rights Day: $labelSolarHoliday", labelSolarHoliday.contains("二月初六") && labelSolarHoliday.contains("消费者权益日"))
+    }
 }
