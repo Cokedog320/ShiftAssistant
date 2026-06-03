@@ -62,6 +62,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -110,6 +112,7 @@ fun EditTaskScreen(
     onDelete: (suspend (Long) -> Unit)?,
     onLoadReminder: suspend (Long) -> ReminderEntity?
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -183,22 +186,19 @@ fun EditTaskScreen(
         when (val result = onSave(reminderId, title, note, dateStartMillis, minutesOfDay, allowPast)) {
             is SaveReminderResult.Success -> {
                 val baseMessage = if (result.scheduledAlarm) "保存成功" else "已保存（时间已过去，不会闹铃）"
-                if (result.needsNotificationWarning || result.needsExactAlarmWarning) {
-                    val warning = if (result.needsNotificationWarning && result.needsExactAlarmWarning) {
+                val warning = if (result.needsNotificationWarning || result.needsExactAlarmWarning) {
+                    if (result.needsNotificationWarning && result.needsExactAlarmWarning) {
                         "，但通知和闹钟权限未开启"
                     } else if (result.needsNotificationWarning) {
                         "，但通知权限未开启"
                     } else {
                         "，但精确闹钟权限未开启"
                     }
-                    snackbarHostState.showSnackbar(baseMessage + warning)
-                    kotlinx.coroutines.delay(1800)
-                    onNavigateBack()
-                } else {
-                    snackbarHostState.showSnackbar(baseMessage)
-                    kotlinx.coroutines.delay(800)
-                    onNavigateBack()
-                }
+                } else ""
+                
+                val toastDuration = if (warning.isNotEmpty()) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+                Toast.makeText(context, baseMessage + warning, toastDuration).show()
+                onNavigateBack()
             }
             SaveReminderResult.NeedsPastConfirmation -> {
                 showPastConfirm = true
