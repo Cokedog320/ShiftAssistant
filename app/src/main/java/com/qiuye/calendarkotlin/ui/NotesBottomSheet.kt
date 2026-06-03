@@ -87,6 +87,7 @@ fun NotesBottomSheet(
     var keyword by remember { mutableStateOf("") }
     var selectedMonth by remember { mutableStateOf<YearMonth?>(null) }
     var selectedScope by remember { mutableStateOf(NoteScope.ALL) }
+    var selectedNoteEntry by remember { mutableStateOf<NoteEntry?>(null) }
     var showDeleteConfirmDialog by remember { mutableStateOf<NoteEntry?>(null) }
     val months = remember(noteEntries) {
         noteEntries.map { it.month }.distinct().sortedDescending()
@@ -257,13 +258,18 @@ fun NotesBottomSheet(
                     }
                 } else {
                     items(filteredEntries, key = { it.date.toString() }) { entry ->
+                        val isSelected = selectedNoteEntry?.date == entry.date
                         NoteItemCard(
                             entry = entry,
                             showLunar = showLunar,
                             reminders = reminders,
                             accentColor = accentColor,
+                            isSelected = isSelected,
                             onClick = {
                                 onSelectNoteDate(entry.date)
+                            },
+                            onSelectToggle = {
+                                selectedNoteEntry = if (isSelected) null else entry
                             },
                             onDeleteClick = {
                                 showDeleteConfirmDialog = entry
@@ -284,6 +290,9 @@ fun NotesBottomSheet(
                     TextButton(
                         onClick = {
                             onDeleteNote(entry.date)
+                            if (selectedNoteEntry?.date == entry.date) {
+                                selectedNoteEntry = null
+                            }
                             showDeleteConfirmDialog = null
                         },
                         modifier = Modifier.testTag("btn_dialog_confirm")
@@ -339,7 +348,9 @@ private fun NoteItemCard(
     showLunar: Boolean,
     reminders: List<ReminderEntity>,
     accentColor: Color,
+    isSelected: Boolean,
     onClick: () -> Unit,
+    onSelectToggle: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
     val dateReminders = remember(entry.date, reminders) {
@@ -354,6 +365,7 @@ private fun NoteItemCard(
     Surface(
         shape = RoundedCornerShape(22.dp),
         color = Color.White.copy(alpha = 0.9f),
+        border = if (isSelected) BorderStroke(1.5.dp, accentColor) else null,
         modifier = Modifier
             .fillMaxWidth()
             .testTag("note_item_${entry.date}")
@@ -367,43 +379,91 @@ private fun NoteItemCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = entry.date.format(noteDateFormatter),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = entry.text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                // Checkbox selector on the left
+                Box(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(22.dp)
+                        .drawBehind {
+                            val strokeWidth = 2.dp.toPx()
+                            if (isSelected) {
+                                drawCircle(
+                                    color = accentColor,
+                                    radius = size.minDimension / 2
+                                )
+                                // Draw checkmark
+                                val checkColor = Color.White
+                                val path = androidx.compose.ui.graphics.Path().apply {
+                                    moveTo(size.width * 0.28f, size.height * 0.48f)
+                                    lineTo(size.width * 0.45f, size.height * 0.65f)
+                                    lineTo(size.width * 0.72f, size.height * 0.32f)
+                                }
+                                drawPath(
+                                    path = path,
+                                    color = checkColor,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                        width = 2.dp.toPx(),
+                                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                                        join = androidx.compose.ui.graphics.StrokeJoin.Round
+                                    )
+                                )
+                            } else {
+                                drawCircle(
+                                    color = Color.LightGray,
+                                    radius = (size.minDimension - strokeWidth) / 2,
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                                )
+                            }
+                        }
+                        .clickable(onClick = onSelectToggle)
+                        .testTag("note_checkbox_${entry.date}")
+                )
+
                 Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    IconButton(
-                        onClick = onDeleteClick,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("btn_notes_delete_${entry.date}")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete,
-                            contentDescription = "删除备注",
-                            tint = Color(0xFFD32F2F),
-                            modifier = Modifier.size(20.dp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = entry.date.format(noteDateFormatter),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = entry.text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (isSelected) {
+                            IconButton(
+                                onClick = onDeleteClick,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .testTag("btn_notes_delete_${entry.date}")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = "删除备注",
+                                    tint = Color(0xFFD32F2F),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
 
