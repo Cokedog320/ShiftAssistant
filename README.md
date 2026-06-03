@@ -1,121 +1,129 @@
-# Calendar
+# Calendar | 智能排班备忘日历
 
-一个本地 Android 日历应用，用来管理排班日历、日期备注和定时提醒。
+[English Version](#english-version) | [中文版](#中文版)
 
-这个项目最初是一个个人日历练手应用，后来把提醒功能合并进来，逐步变成一个更完整的本地时间管理工具。它不是一个商业化产品仓库，也不打算包装成大型开源项目；这里更关注真实可用、结构清楚、方便继续迭代。
+---
 
-## 现在能做什么
+## 中文版
 
-- 查看月历，并显示公历日期、农历信息和节假日标记
-- 设置排班循环，查看每天对应的班次
-- 给具体日期添加备注
-- 在备注中心搜索、回看已有备注
-- 创建、编辑、删除提醒
-- 在提醒中心查看全部提醒，并按状态筛选
-- 到点后通过系统通知提醒
-- App 重启或手机重启后恢复未完成提醒
+一个功能完善的本地 Android 排班日历、日期备注与定时提醒应用。
 
-## 最近更新
+本项目旨在提供一个真实可用、结构清晰、逻辑严密的本地时间与日程管理工具，优先保证本地可用、提醒可靠、数据稳定。它集成了轮班管理、每日备忘、提醒闹铃等核心日常功能。
 
-- 🌟 **左上角智能防裁剪排班标签**：将日历单元格中的排班标签移至左上角，与节假日标签完美左右镜像对称。首创**智能自适应字号**，在普通日子放大至 `10.5sp` / `16dp` 贴边圆角呈现饱满醒目的“小印章”质感，在节假日时自动收缩至 `9.5sp` 优雅避让。彻底腾退底部空间，释放 `16dp` 垂直高度，彻底解决真机边缘遮挡以及底部红绿蓝备注圆点被挤压的视觉痛点。
-- 📅 **修复：日期选择器公历天称呼规范化**：修复了公历日期选择器错误渲染农历“初一、初二、十五”的 Bug，重构逻辑使其完美呈现为标准规范的公历中文称呼：**“一日”到“三十一日”**，与左侧的“一月、二月”保持完美的排版连贯性与中式古典美感。
-- 🔍 **升级：备忘与提醒“免破折号”模糊智能搜索**：重构了“备忘录中心”与“提醒中心”的过滤匹配引擎。用户无需输入繁琐的破折号分隔符，直接输入符合日常习惯的纯数字格式（如 **`202605`**、**`20265`**、**`202603`**、**`521`** 等）即可在后台完成智能解析与提取，秒级精准筛选出对应年份、月份或具体日期的所有备注与提醒日程。
+### 最近更新 (🌟 Recent Updates)
 
-## 功能说明
+- 📌 **备忘录中心交互重构与置顶头部**：
+  - **置顶头部标题栏**：固定了“备忘录中心”的标题与关闭按钮，无论列表如何滚动，用户随时可以方便地点击关闭或划走面板。
+  - **卡片直观勾选与删除**：保留了经典的复选框选中机制。用户在勾选某条备注左侧的复选框后，卡片右侧会动态显示删除（垃圾桶）按钮，点击可直接进行二次确认删除，无需像以前一样繁琐地滑回屏幕最顶端点击删除。
+- ⚡ **提醒保存瞬时返回（消除阻塞）**：
+  - 移除了原有的同步等待 Compose Snackbar 消失（约 4 秒）与人为设定的延迟。
+  - 引入了非阻塞的 Android 系统原生 `Toast` 提示反馈（在保存成功且存在权限异常时，自动调整为长提示）。
+  - 实现点击“保存”后 **0 毫秒延迟** 即刻返回日历主界面，而提示信息仍会完美悬浮在主屏幕下方，提供了极佳的响应速度与交互连贯性。
+- 🧪 **完整单元测试与集成测试套件**：
+  - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 60+。
+  - 包括 Room 数据库多版本升迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
 
-### 日历
+### 现在能做什么
 
-主界面以月历为核心。日期格子会展示当天的基础信息，并标记是否有备注或提醒。点击日期后，可以查看当天详情；如果当天已有备注，会自动打开详情，方便继续查看或修改。
+- **月历视图**：显示公历日期、农历信息（如初一、十五、二十四节气）以及法定节假日和补班标记（“休”/“班”）。
+- **智能排班标签**：将自适应排班标签平铺在日期单元格的左上角。在普通日子以饱满的“小印章”形式呈现，而在节假日时自动收缩避让。
+- **每日备注**：支持在点击特定日期后添加、修改或查看当天的备忘信息，底部圆点指示备注状态。
+- **备忘录搜索中心**：支持纯数字“免破折号”模糊搜索（如输入 `202605` 精准定位至 2026 年 5 月的备注）。
+- **定时提醒闹铃**：创建、编辑和删除定时提醒。在提醒时间到达时，即使应用处于后台或重启状态，也会通过系统闹铃和状态栏通知准时进行提示。
 
-### 备注
+### 技术栈
 
-备注按日期保存，适合记录当天的班次说明、临时事项或简单备忘。备注中心主要用于搜索和回看，不承担复杂待办管理。
+- **语言**: Kotlin
+- **UI 框架**: Jetpack Compose, Material Design 3
+- **导航**: AndroidX Navigation
+- **持久化**: Room Database (SQLite), DataStore Preferences
+- **调度器**: AlarmManager (系统精确定时器)
+- **构建工具**: Gradle Kotlin DSL
 
-### 提醒
+### 主要代码结构
 
-提醒是独立的数据模块，支持标题、备注、提醒日期和提醒时间。保存提醒后，应用会通过系统闹钟安排通知；提醒触发后可以从通知进入对应提醒详情。
+主要代码位于 `app/src/main/java/com/qiuye/calendarkotlin/` 下：
+- `ui/`：日历面板、设置页、备忘录中心等 Compose 界面组件
+- `viewmodel/`：日历主状态、响应式交互流
+- `data/`：日期备注、班次配置等 DataStore Preferences 数据处理
+- `domain/`：日期网格计算、农历换算与节假日匹配算法
+- `tasks/`：包含闹钟定时调度（AlarmManager）、系统状态栏通知（NotificationCompat）以及提醒的交互设计
 
-提醒依赖 Android 的通知权限和精确闹钟权限。权限未开启时，应用会尽量给出提示，但最终是否准时弹出通知仍取决于系统设置。
+### 测试与验证
 
-## 技术栈
+项目包含完善的单元测试（在 JVM 运行）与仪器化 UI 测试（在真机或模拟器上运行）。
 
-- Kotlin
-- Jetpack Compose
-- AndroidX Navigation
-- DataStore Preferences
-- Room
-- AlarmManager
-- Gradle Kotlin DSL
-
-## 项目结构
-
-```text
-.
-├── app/        Android 应用源码、资源、测试和 Room schema
-├── docs/       测试记录、回归检查和观察笔记
-├── gradle/     Gradle wrapper 配置
-└── README.md   项目说明
-```
-
-主要代码在 `app/src/main/java/com/qiuye/calendarkotlin/` 下：
-
-- `ui/`：日历、备注中心、提醒中心等 Compose 界面
-- `viewmodel/`：日历状态和交互逻辑
-- `data/`：日历备注、排班配置等本地数据
-- `domain/`：日期计算、农历和节假日相关逻辑
-- `tasks/`：提醒的数据、调度、通知和编辑页面
-
-## 构建方式
-
-项目使用 Android Studio 打开即可。也可以在项目根目录运行：
-
-```powershell
-.\gradlew.bat assembleDebug
-```
-
-生成的 debug APK 位于：
-
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-## 测试
-
-常用检查命令：
-
+**运行单元测试（JVM）**:
 ```powershell
 .\gradlew.bat testDebugUnitTest
 ```
-
+**编译仪器化测试 APK**:
 ```powershell
 .\gradlew.bat assembleDebugAndroidTest
 ```
-
-如果要在真机或模拟器上跑仪器测试，可以连接设备后运行：
-
+**在连接的设备上运行仪器化测试**:
 ```powershell
 .\gradlew.bat connectedDebugAndroidTest
 ```
 
-提醒功能建议最终以真机测试为准，尤其是退出 App 后触发提醒、通知权限、精确闹钟权限和重启后恢复提醒这些场景。
+---
 
-## 权限说明
+## English Version
 
-应用会用到以下权限：
+A fully-featured local Android Calendar application designed for shift rotation management, daily note taking, and scheduled reminder alerts.
 
-- `POST_NOTIFICATIONS`：Android 13 及以上发送通知需要
-- `SCHEDULE_EXACT_ALARM`：用于尽量准时触发提醒
-- `RECEIVE_BOOT_COMPLETED`：手机重启后恢复未完成提醒
+This repository serves as a reliable, clean, and highly robust daily utility tool that prioritizes off-line usability, punctual alarm scheduling, and local data persistence.
 
-不同品牌系统可能还会有额外的后台限制。如果提醒没有触发，需要检查通知权限、精确闹钟权限、电池优化和后台限制。
+### 🌟 Recent Updates
 
-## 当前定位
+- 📌 **Notes Center Layout & Deletion Interaction Refactoring**:
+  - **Sticky Top Bar**: Extracted the "Notes Center" title and close buttons outside the scrollable `LazyColumn`. They are now pinned to the top of the BottomSheet, allowing users to close or dismiss the panel easily at any scroll offset.
+  - **Localized Checked Deletion**: Kept the classic checkbox selection flow. Checking a note card's left-side selector now dynamically reveals a red delete (trash) button on the card itself (to the left of the forward arrow). Users can confirm deletion on-the-spot without scrolling all the way back to the top of the sheet.
+- ⚡ **Instant Return on Save (Zero-Delay Navigation)**:
+  - Eliminated the previous coroutine suspension block where the app had to wait for the Compose Snackbar to dismiss (~4 seconds) before navigating back.
+  - Replaced it with Android's system-level `Toast` (which automatically uses `LENGTH_LONG` for permission warnings and `LENGTH_SHORT` for normal saves).
+  - The edit screen now navigates back **with 0ms delay** as soon as the user taps "Save", while the Toast message floats smoothly on top of the destination screen.
+- 🧪 **Comprehensive Test Suite**:
+  - Created a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 60+ verified test cases.
+  - Features multi-version Room migration testing, local DataStore Preferences serialization validation, Turbine-based `StateFlow` assertions, and end-to-end Compose UI test cases to guarantee zero regressions.
 
-Calendar 是一个偏个人使用的原生 Android 应用。它优先保证本地可用、提醒可靠、数据不乱迁移，不追求复杂账号系统、云同步或 Web 端形态。
+### Key Features
 
-后续如果继续扩展，比较适合围绕这些方向做小步迭代：
+- **Monthly Calendar Grid**: View Gregorian calendar days, Lunar dates, and statutory holiday tags (e.g. "休" / "班").
+- **Smart Shift Labels**: Adaptive stamp-style shift tags located in the top-left of each day cell. The font and padding automatically adjust to prevent overlapping with holiday tags.
+- **Daily Notes**: Write, view, or update quick text memos for any day.
+- **Searchable Notes Center**: Search historical notes with simple digits (e.g., searching `202605` or `20265` to find May 2026 memos).
+- **Alarm Alerter**: Schedule, edit, or delete reminders. Alarms are registered via the system scheduler and will trigger notifications even after device reboots.
 
-- 优化提醒列表和日期详情之间的联动
-- 增强备注搜索和筛选
-- 补充更多回归测试
-- 改善不同 Android 版本上的提醒权限提示
+### Tech Stack
+
+- **Language**: Kotlin
+- **UI Framework**: Jetpack Compose, Material Design 3
+- **Navigation**: AndroidX Navigation
+- **Persistence**: Room Database (SQLite), DataStore Preferences
+- **Scheduling**: AlarmManager (System Exact Timer)
+- **Build Tool**: Gradle Kotlin DSL
+
+### Project Directory Structure
+
+Core source files reside under `app/src/main/java/com/qiuye/calendarkotlin/`:
+- `ui/`: Compose layout screens for main view, calendar details, settings, and notes bottom sheet.
+- `viewmodel/`: Core state logic and user event mapping.
+- `data/`: Local cache managers and DataStore Preference configuration files.
+- `domain/`: Math calculators for monthly day grids, Lunar conversion tables, and statutory holiday rules.
+- `tasks/`: Scheduled reminders package covering alarm setup, Notification builders, and receiver boot restorations.
+
+### Running Tests
+
+**Run local unit tests (JVM)**:
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+**Assemble android instrumented tests APK**:
+```powershell
+.\gradlew.bat assembleDebugAndroidTest
+```
+**Run instrumented tests on connected device**:
+```powershell
+.\gradlew.bat connectedDebugAndroidTest
+```
