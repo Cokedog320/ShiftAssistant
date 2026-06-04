@@ -192,6 +192,16 @@ class ReminderServiceTest : BaseUnitTest() {
     }
 
     @Test
+    fun deleteReminder_cancelsAlarmAndNotificationEvenWhenEntityNotFound() = runBlocking {
+        val nonExistentId = 99999L
+
+        service.deleteReminder(nonExistentId)
+
+        assertTrue(scheduler.cancelCalls.contains(nonExistentId))
+        assertTrue(cancelledReminderIds.contains(nonExistentId))
+    }
+
+    @Test
     fun setReminderCompleted_cancelsOrReschedulesAccordingToState() = runBlocking {
         val now = System.currentTimeMillis()
         val futureReminderId = repository.insert(
