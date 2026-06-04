@@ -69,7 +69,7 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun uiStateValueUpdatesWithoutActiveCollector() = runTest {
+    fun uiStateValueUpdatesWithActiveCollector() = runTest {
         val repository = FakeCalendarDataStore(
             CalendarData(
                 cycleStartDate = "2026-06-01",
@@ -79,25 +79,32 @@ class CalendarViewModelTest {
             )
         )
         val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
 
-        advanceUntilIdle()
-        assertEquals("值班交接", viewModel.uiState.value.calendarData.notes["2026-06-15"])
+        try {
+            advanceUntilIdle()
+            assertEquals("值班交接", viewModel.uiState.value.calendarData.notes["2026-06-15"])
 
-        repository.updateDetail(
-            dateKey = "2026-06-20",
-            note = "复盘",
-            overrideShift = null,
-        )
-        advanceUntilIdle()
+            repository.updateDetail(
+                dateKey = "2026-06-20",
+                note = "复盘",
+                overrideShift = null,
+            )
+            advanceUntilIdle()
 
-        val latestState = viewModel.uiState.value
-        assertEquals("复盘", latestState.calendarData.notes["2026-06-20"])
-        assertTrue(
-            latestState.noteEntries.any { entry ->
-                entry.date == LocalDate.of(2026, 6, 20) && entry.text == "复盘"
-            }
-        )
-        assertCalendarDataMatchesNoteEntries(latestState)
+            val latestState = viewModel.uiState.value
+            assertEquals("复盘", latestState.calendarData.notes["2026-06-20"])
+            assertTrue(
+                latestState.noteEntries.any { entry ->
+                    entry.date == LocalDate.of(2026, 6, 20) && entry.text == "复盘"
+                }
+            )
+            assertCalendarDataMatchesNoteEntries(latestState)
+        } finally {
+            collector.cancel()
+        }
     }
 
     @Test
@@ -177,6 +184,37 @@ class CalendarViewModelTest {
             assertEquals(defaultPattern().first(), repository.data.value.overrides[targetDateWithNote.toString()])
         } finally {
             collector.cancel()
+        }
+    }
+
+    @Test
+    fun uiStateUsesWhileSubscribedAndResumesCorrectly() = runTest {
+        val repository = FakeCalendarDataStore(CalendarData(showLunar = false))
+        val viewModel = CalendarViewModel(repository)
+
+        // Collect, get initial value, then stop collecting
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+        collector.cancel()
+        advanceUntilIdle()
+
+        // Make a change while no collector is active
+        repository.updateDetail("2026-06-01", "test note", overrideShift = null)
+        advanceUntilIdle()
+
+        // Start collecting again — WhileSubscribed should replay the latest data
+        val secondCollector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+
+        try {
+            val state = viewModel.uiState.value
+            assertEquals("test note", state.calendarData.notes["2026-06-01"])
+        } finally {
+            secondCollector.cancel()
         }
     }
 }

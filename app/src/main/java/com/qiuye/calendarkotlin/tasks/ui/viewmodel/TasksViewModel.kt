@@ -7,31 +7,24 @@ import com.qiuye.calendarkotlin.tasks.TasksGraph
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.combineDateAndMinutes
 import com.qiuye.calendarkotlin.tasks.service.SaveReminderResult
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class TasksViewModel(application: Application) : AndroidViewModel(application) {
     private val service = TasksGraph.reminderService(application)
 
-    private val clockFlow = flow {
-        while (true) {
-            emit(System.currentTimeMillis())
-            delay(60_000)
+    val reminders = service.observeReminders()
+        .map { reminders ->
+            val now = System.currentTimeMillis()
+            reminders.sortedWith(
+                compareBy<ReminderEntity> { reminderRank(it, now) }
+                    .thenBy { it.scheduledAtMillis }
+                    .thenByDescending { it.updatedAtMillis }
+            )
         }
-    }.onStart { emit(System.currentTimeMillis()) }
-
-    val reminders = combine(service.observeReminders(), clockFlow) { reminders, now ->
-        reminders.sortedWith(
-            compareBy<ReminderEntity> { reminderRank(it, now) }
-                .thenBy { it.scheduledAtMillis }
-                .thenByDescending { it.updatedAtMillis }
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun observeReminder(id: Long): Flow<ReminderEntity?> = service.observeReminder(id)
 

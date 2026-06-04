@@ -43,7 +43,9 @@ data class LunarDisplay(
 
 object ChineseCalendarInfo {
     private val json = Json { ignoreUnknownKeys = true }
+    @Volatile
     private var holidayPeriods: List<HolidayPeriod> = emptyList()
+    @Volatile
     private var workdays: Map<LocalDate, String> = emptyMap()
 
     /**

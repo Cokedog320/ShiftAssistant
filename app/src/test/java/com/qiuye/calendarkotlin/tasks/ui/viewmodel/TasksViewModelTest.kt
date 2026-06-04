@@ -68,4 +68,22 @@ class TasksViewModelTest : BaseUnitTest() {
             assertEquals("Completed", sortedList[2].title) // Rank 2
         }
     }
+
+    @Test
+    fun `reminders list updates sorting when data changes without clock`() = runTest {
+        viewModel.reminders.test {
+            awaitItem() // initial empty
+
+            val now = System.currentTimeMillis()
+            val upcoming = ReminderEntity(1, "Upcoming", "", now + 3600_000, false, 0, 0)
+            val completed = ReminderEntity(2, "Done", "", now + 7200_000, true, 0, 0)
+
+            remindersFlow.value = listOf(upcoming, completed)
+            val list = awaitItem()
+
+            assertEquals(2, list.size)
+            assertEquals("Upcoming", list[0].title)
+            assertEquals("Done", list[1].title)
+        }
+    }
 }

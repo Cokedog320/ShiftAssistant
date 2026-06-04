@@ -60,6 +60,28 @@ object CalendarCalculator {
         val index = (ChronoUnit.DAYS.between(cycleStartDate, date) % calendarData.pattern.size).toInt()
         return calendarData.pattern[index]
     }
+
+    fun getDayCell(
+        date: LocalDate,
+        calendarData: CalendarData,
+        reminderDates: Set<LocalDate> = emptySet(),
+        diaryDates: Set<String> = emptySet(),
+    ): DayCell {
+        val lunarDisplay = ChineseCalendarInfo.getLunarDisplay(date)
+        return DayCell(
+            date = date,
+            inCurrentMonth = true,
+            isToday = date == LocalDate.now(),
+            isSelected = true,
+            shift = getShiftForDate(date, calendarData),
+            hasNote = !calendarData.notes[date.toStorageKey()].isNullOrBlank(),
+            hasReminder = date in reminderDates,
+            hasDiary = date.toStorageKey() in diaryDates,
+            lunarLabel = if (calendarData.showLunar) lunarDisplay.label else "",
+            lunarFullText = if (calendarData.showLunar) lunarDisplay.fullText else "",
+            holiday = ChineseCalendarInfo.getHolidayMarker(date),
+        )
+    }
 }
 
 fun LocalDate.toStorageKey(): String = toString()

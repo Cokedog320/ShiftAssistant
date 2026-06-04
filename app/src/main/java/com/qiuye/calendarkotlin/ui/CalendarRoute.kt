@@ -53,8 +53,8 @@ import kotlinx.coroutines.launch
 import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
 import com.qiuye.calendarkotlin.diary.ui.DiaryListBottomSheet
 
-private val pagerStartMonth: YearMonth = YearMonth.of(1, 1)
-private val pagerPageCount = 12 * 9999
+private val pagerStartMonth: YearMonth = YearMonth.of(1900, 1)
+private val pagerPageCount = (2100 - 1900) * 12
 
 @Composable
 fun CalendarRoute(
@@ -187,6 +187,14 @@ private fun CalendarScreen(
         initialPage = monthToPage(uiState.currentMonth),
         pageCount = { pagerPageCount },
     )
+    val reminderDates = remember(reminders) {
+        reminders.map { reminder ->
+            java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate()
+        }.toSet()
+    }
+
     val handleToday = {
         onToday()
     }
@@ -358,13 +366,6 @@ private fun CalendarScreen(
                         .testTag("calendar_pager"),
                 ) { page ->
                     val month = remember(page) { pageToMonth(page) }
-                    val reminderDates = remember(reminders) {
-                        reminders.map { reminder ->
-                            java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toLocalDate()
-                        }.toSet()
-                    }
                     val dayCells = remember(
                         month,
                         uiState.calendarData,
@@ -433,12 +434,13 @@ private fun CalendarScreen(
                 )
             } else if (uiState.isDaySheetVisible) {
                 uiState.selectedDate?.let { selected ->
-                    val selectedCell = remember(selected, uiState.calendarData) {
-                        CalendarCalculator.buildMonthGrid(
-                            month = YearMonth.from(selected),
+                    val selectedCell = remember(selected, uiState.calendarData, reminderDates, diaryDateKeys) {
+                        CalendarCalculator.getDayCell(
+                            date = selected,
                             calendarData = uiState.calendarData,
-                            selectedDate = selected,
-                        ).firstOrNull { it.date == selected }
+                            reminderDates = reminderDates,
+                            diaryDates = diaryDateKeys,
+                        )
                     }
                     val dateReminders = remember(selected, reminders) {
                         reminders.filter { reminder ->
@@ -454,9 +456,9 @@ private fun CalendarScreen(
                         note = uiState.calendarData.notes[selected.toString()].orEmpty(),
                         pattern = uiState.calendarData.pattern,
                         overrideShift = uiState.calendarData.overrides[selected.toString()],
-                        lunarFullText = selectedCell?.lunarFullText.orEmpty(),
-                        holidayName = selectedCell?.holiday?.name,
-                        holidayLabel = selectedCell?.holiday?.label,
+                        lunarFullText = selectedCell.lunarFullText,
+                        holidayName = selectedCell.holiday?.name,
+                        holidayLabel = selectedCell.holiday?.label,
                         tasks = dateReminders,
                         onDismiss = onCloseDaySheet,
                         onSave = { note, shift -> onSaveDayDetail(selected, note, shift) },
