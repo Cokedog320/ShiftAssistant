@@ -94,8 +94,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainNavigation(
     calendarViewModel: CalendarViewModel,
-    tasksViewModel: TasksViewModel = viewModel(),
-    diaryViewModel: DiaryViewModel = viewModel(),
+tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
+    diaryViewModel: DiaryViewModel = viewModel(factory = DiaryViewModel.factory(LocalContext.current)),
     openReminderIdFlow: kotlinx.coroutines.flow.StateFlow<Long?>,
     onConsumeOpenReminder: () -> Unit
 ) {

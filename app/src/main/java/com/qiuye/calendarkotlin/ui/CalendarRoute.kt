@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,8 +60,8 @@ private val pagerPageCount = (2100 - 1900) * 12
 @Composable
 fun CalendarRoute(
     viewModel: CalendarViewModel, 
-    tasksViewModel: TasksViewModel = viewModel(),
-    diaryViewModel: DiaryViewModel = viewModel(),
+    tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
+    diaryViewModel: DiaryViewModel = viewModel(factory = DiaryViewModel.factory(LocalContext.current)),
     onNavigateToEditTask: (Long) -> Unit,
     onNavigateToNewTaskWithDate: (Long) -> Unit,
     onNavigateToNewTask: () -> Unit,
