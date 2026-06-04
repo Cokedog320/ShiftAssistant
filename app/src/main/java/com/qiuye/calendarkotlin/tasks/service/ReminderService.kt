@@ -94,11 +94,11 @@ class ReminderService(
         )
     }
 
-    suspend fun deleteReminder(reminderId: Long) {
-        repository.getById(reminderId)?.let { reminder -> 
+suspend fun deleteReminder(reminderId: Long) {
+        scheduler.cancel(reminderId)
+        notificationCanceller(context, reminderId)
+        repository.getById(reminderId)?.let { reminder ->
             repository.delete(reminder)
-            scheduler.cancel(reminderId)
-            notificationCanceller(context, reminderId)
         }
     }
 
