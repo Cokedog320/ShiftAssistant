@@ -32,7 +32,7 @@ class CalendarViewModelTest {
         val repository = FakeCalendarDataStore(
             CalendarData(
                 cycleStartDate = "2026-06-01",
-                pattern = defaultPattern(),
+                pattern = defaultPattern,
                 notes = mapOf("2026-06-15" to "值班交接"),
                 showLunar = false,
             )
@@ -73,7 +73,7 @@ class CalendarViewModelTest {
         val repository = FakeCalendarDataStore(
             CalendarData(
                 cycleStartDate = "2026-06-01",
-                pattern = defaultPattern(),
+                pattern = defaultPattern,
                 notes = mapOf("2026-06-15" to "值班交接"),
                 showLunar = false,
             )
@@ -112,7 +112,7 @@ class CalendarViewModelTest {
         val repository = FakeCalendarDataStore(
             CalendarData(
                 cycleStartDate = "2026-06-01",
-                pattern = defaultPattern(),
+                pattern = defaultPattern,
                 notes = mapOf(
                     "2026-06-15" to "值班交接",
                     "2026-06-20" to "复盘",
@@ -175,13 +175,13 @@ class CalendarViewModelTest {
             assertEquals(targetDateWithNote, viewModel.uiState.value.selectedDate)
 
             // 保存后关闭 Sheet 且清除选中状态
-            viewModel.saveDayDetail(targetDateWithNote, "保存后的备注", defaultPattern().first())
+            viewModel.saveDayDetail(targetDateWithNote, "保存后的备注", defaultPattern.first())
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isDaySheetVisible)
             assertNull(viewModel.uiState.value.selectedDate)
             assertEquals("保存后的备注", repository.data.value.notes[targetDateWithNote.toString()])
-            assertEquals(defaultPattern().first(), repository.data.value.overrides[targetDateWithNote.toString()])
+            assertEquals(defaultPattern.first(), repository.data.value.overrides[targetDateWithNote.toString()])
         } finally {
             collector.cancel()
         }

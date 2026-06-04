@@ -91,7 +91,7 @@ class CalendarCalculatorTest : BaseUnitTest() {
         val date = LocalDate.of(2024, 1, 5)
         val data = CalendarData(
             cycleStartDate = "2024-01-01",
-            pattern = defaultPattern(),
+            pattern = defaultPattern,
             showLunar = false,
         )
 
@@ -119,7 +119,7 @@ class CalendarCalculatorTest : BaseUnitTest() {
         val override = ShiftDefinition("vacation", "休假", ShiftColorOption.GREEN)
         val data = CalendarData(
             cycleStartDate = "2024-01-01",
-            pattern = defaultPattern(),
+            pattern = defaultPattern,
             overrides = mapOf("2024-01-02" to override),
             showLunar = false,
         )

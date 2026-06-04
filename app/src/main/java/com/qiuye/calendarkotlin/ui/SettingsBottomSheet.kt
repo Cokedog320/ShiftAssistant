@@ -194,7 +194,7 @@ fun SettingsBottomSheet(
                             onSave(
                                 startDate.ifBlank { null },
                                 endDate.ifBlank { null },
-                                pattern.toList().ifEmpty { defaultPattern() },
+                                pattern.toList().ifEmpty { defaultPattern },
                                 showLunar,
                             )
                         },

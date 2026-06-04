@@ -26,7 +26,7 @@ data class ShiftDefinition(
 data class CalendarData(
     val cycleStartDate: String? = null,
     val cycleEndDate: String? = null,
-    val pattern: List<ShiftDefinition> = defaultPattern(),
+    val pattern: List<ShiftDefinition> = defaultPattern,
     val notes: Map<String, String> = emptyMap(),
     val overrides: Map<String, ShiftDefinition> = emptyMap(),
     val showLunar: Boolean = true,
@@ -52,7 +52,7 @@ data class HolidayMarker(
     val isWorkday: Boolean,
 )
 
-fun defaultPattern(): List<ShiftDefinition> = listOf(
+val defaultPattern: List<ShiftDefinition> = listOf(
     ShiftDefinition(id = "1", name = "白班", color = ShiftColorOption.BLUE),
     ShiftDefinition(id = "2", name = "夜班", color = ShiftColorOption.INDIGO),
     ShiftDefinition(id = "3", name = "休息", color = ShiftColorOption.GREEN),

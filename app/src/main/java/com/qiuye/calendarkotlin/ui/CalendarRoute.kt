@@ -180,7 +180,7 @@ private fun CalendarScreen(
     onNavigateToDiaryEdit: (String) -> Unit,
     onDeleteNote: (java.time.LocalDate) -> Unit
 ) {
-    val palette = seasonPaletteFor(uiState.currentMonth.monthValue)
+    val palette = remember(uiState.currentMonth.monthValue) { seasonPaletteFor(uiState.currentMonth.monthValue) }
     val coroutineScope = rememberCoroutineScope()
     val latestOnMonthChanged = rememberUpdatedState(onMonthChanged)
     val latestCurrentMonth = rememberUpdatedState(uiState.currentMonth)

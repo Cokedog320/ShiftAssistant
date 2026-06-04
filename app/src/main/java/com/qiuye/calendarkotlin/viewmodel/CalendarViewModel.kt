@@ -136,7 +136,9 @@ class CalendarViewModel internal constructor(
         selectedDate.value = date
         currentMonth.value = YearMonth.from(date)
         closeAllSheets()
-        if (hasNote(date)) {
+        val noteKey = date.toStorageKey()
+        val currentNotes = calendarDataWithNotes.value.calendarData.notes
+        if (!currentNotes[noteKey].isNullOrBlank()) {
             daySheetVisible.value = true
         }
     }
@@ -232,7 +234,7 @@ class CalendarViewModel internal constructor(
     ) {
         val normalizedCycleStartDate = cycleStartDate?.takeIf { it.isNotBlank() }
         val normalizedCycleEndDate = cycleEndDate?.takeIf { it.isNotBlank() }
-        val normalizedPattern = pattern.ifEmpty { defaultPattern() }
+        val normalizedPattern = pattern.ifEmpty { defaultPattern }
         viewModelScope.launch {
             repository.updateSettings(
                 cycleStartDate = normalizedCycleStartDate,
@@ -262,9 +264,6 @@ class CalendarViewModel internal constructor(
             selectedDate.value = null
         }
     }
-
-    private fun hasNote(date: LocalDate): Boolean =
-        !calendarDataWithNotes.value.calendarData.notes[date.toStorageKey()].isNullOrBlank()
 
     private fun closeAllSheets() {
         settingsVisible.value = false
