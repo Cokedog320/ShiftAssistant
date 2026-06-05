@@ -41,6 +41,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qiuye.calendarkotlin.domain.CalendarCalculator
 import com.qiuye.calendarkotlin.viewmodel.CalendarUiState
@@ -74,6 +79,47 @@ fun CalendarRoute(
     val diarySearchQuery by diaryViewModel.searchQuery.collectAsStateWithLifecycle()
     val diarySearchResults by diaryViewModel.searchResults.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        uri?.let { targetUri ->
+            coroutineScope.launch {
+                try {
+                    val json = viewModel.exportData()
+                    context.contentResolver.openOutputStream(targetUri)?.use { outputStream ->
+                        OutputStreamWriter(outputStream).use { writer ->
+                            writer.write(json)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri?.let { targetUri ->
+            coroutineScope.launch {
+                try {
+                    val json = context.contentResolver.openInputStream(targetUri)?.use { inputStream ->
+                        BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                            reader.readText()
+                        }
+                    }
+                    if (!json.isNullOrBlank()) {
+                        viewModel.importData(json)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
 
     CalendarScreen(
         uiState = uiState,
@@ -138,7 +184,9 @@ fun CalendarRoute(
         },
         onAddNewReminder = onNavigateToNewTask,
         onNavigateToDiaryEdit = onNavigateToDiaryEdit,
-        onDeleteNote = viewModel::deleteNote
+        onDeleteNote = viewModel::deleteNote,
+        onExport = { exportLauncher.launch("calendar_backup.json") },
+        onImport = { importLauncher.launch(arrayOf("application/json")) },
     )
 }
 
@@ -178,7 +226,9 @@ private fun CalendarScreen(
     onNavigateToNewTaskWithDate: (java.time.LocalDate) -> Unit,
     onAddNewReminder: () -> Unit,
     onNavigateToDiaryEdit: (String) -> Unit,
-    onDeleteNote: (java.time.LocalDate) -> Unit
+    onDeleteNote: (java.time.LocalDate) -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
 ) {
     val palette = remember(uiState.currentMonth.monthValue) { seasonPaletteFor(uiState.currentMonth.monthValue) }
     val coroutineScope = rememberCoroutineScope()
@@ -400,6 +450,8 @@ private fun CalendarScreen(
                     onDismiss = onCloseSettings,
                     onClearOverrides = onClearOverrides,
                     onSave = onSaveSettings,
+                    onExport = onExport,
+                    onImport = onImport,
                 )
             } else if (uiState.isNotesVisible) {
                 NotesBottomSheet(

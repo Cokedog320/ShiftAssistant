@@ -58,6 +58,8 @@ fun SettingsBottomSheet(
     onDismiss: () -> Unit,
     onClearOverrides: () -> Unit,
     onSave: (String?, String?, List<ShiftDefinition>, Boolean) -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var startDate by remember(calendarData.cycleStartDate) { mutableStateOf(calendarData.cycleStartDate.orEmpty()) }
@@ -142,6 +144,35 @@ fun SettingsBottomSheet(
                     Icon(Icons.Rounded.ClearAll, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("清除所有手动改班")
+                }
+            }
+            item { HorizontalDivider() }
+            item {
+                Text(
+                    text = "数据管理",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = onExport,
+                        modifier = Modifier.weight(1f)
+                            .testTag("btn_settings_export"),
+                    ) {
+                        Text("导出备份")
+                    }
+                    OutlinedButton(
+                        onClick = onImport,
+                        modifier = Modifier.weight(1f)
+                            .testTag("btn_settings_import"),
+                    ) {
+                        Text("导入数据")
+                    }
                 }
             }
             item { HorizontalDivider() }

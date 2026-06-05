@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 data class CalendarUiState(
     val currentMonth: YearMonth = YearMonth.now(),
@@ -61,6 +63,10 @@ private data class CalendarDataWithNotes(
 class CalendarViewModel internal constructor(
     private val repository: CalendarDataStore,
 ) : ViewModel() {
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
     private val currentMonth = MutableStateFlow(YearMonth.now())
     private val selectedDate = MutableStateFlow<LocalDate?>(null)
     private val settingsVisible = MutableStateFlow(false)
@@ -200,6 +206,21 @@ class CalendarViewModel internal constructor(
         currentMonth.value = YearMonth.from(date)
         selectedDate.value = date
         dismissDaySheet()
+    }
+
+    suspend fun exportData(): String {
+        val data = repository.getCurrentData()
+        return json.encodeToString(data)
+    }
+
+    fun importData(jsonString: String) {
+        viewModelScope.launch {
+            runCatching {
+                json.decodeFromString<CalendarData>(jsonString)
+            }.onSuccess { data ->
+                repository.replaceAllData(data)
+            }
+        }
     }
 
     fun saveDayDetail(date: LocalDate, note: String, overrideShift: ShiftDefinition?) {

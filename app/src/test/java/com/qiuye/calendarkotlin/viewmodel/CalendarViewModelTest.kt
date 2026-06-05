@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -217,6 +219,61 @@ class CalendarViewModelTest {
             secondCollector.cancel()
         }
     }
+
+    @Test
+    fun exportDataReturnsCorrectJson() = runTest {
+        val data = CalendarData(
+            cycleStartDate = "2026-06-01",
+            pattern = defaultPattern,
+            notes = mapOf("2026-06-15" to "Test Note"),
+            showLunar = false,
+        )
+        val repository = FakeCalendarDataStore(data)
+        val viewModel = CalendarViewModel(repository)
+
+        val json = viewModel.exportData()
+        val decoded = Json.decodeFromString<CalendarData>(json)
+        assertEquals(data, decoded)
+    }
+
+    @Test
+    fun importDataUpdatesStateWithValidJson() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            val newData = CalendarData(
+                cycleStartDate = "2026-01-01",
+                notes = mapOf("2026-01-01" to "Imported Note"),
+                showLunar = false,
+            )
+            val json = Json.encodeToString(newData)
+
+            viewModel.importData(json)
+            advanceUntilIdle()
+
+            assertEquals(newData.cycleStartDate, repository.data.value.cycleStartDate)
+            assertEquals(false, viewModel.uiState.value.calendarData.showLunar)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun importDataDoesNotUpdateStateWithInvalidJson() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+
+        viewModel.importData("invalid json")
+        advanceUntilIdle()
+
+        assertEquals(initialData, repository.data.value)
+    }
 }
 
 private fun assertCalendarDataMatchesNoteEntries(state: CalendarUiState) {
@@ -268,6 +325,14 @@ private class FakeCalendarDataStore(initialData: CalendarData) : CalendarDataSto
 
     override suspend fun clearAll() {
         data.value = CalendarData()
+    }
+
+    override suspend fun replaceAllData(data: CalendarData) {
+        this.data.value = data
+    }
+
+    override suspend fun getCurrentData(): CalendarData {
+        return data.value
     }
 }
 

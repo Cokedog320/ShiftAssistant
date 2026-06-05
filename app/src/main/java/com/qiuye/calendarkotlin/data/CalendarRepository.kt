@@ -12,6 +12,7 @@ import com.qiuye.calendarkotlin.model.ShiftDefinition
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -20,6 +21,7 @@ private val Context.calendarDataStore by preferencesDataStore(name = "calendar_s
 
 internal interface CalendarDataStore {
     val calendarData: Flow<CalendarData>
+    suspend fun getCurrentData(): CalendarData
 
     suspend fun updateDetail(dateKey: String, note: String, overrideShift: ShiftDefinition?)
 
@@ -33,6 +35,8 @@ internal interface CalendarDataStore {
     suspend fun clearOverrides()
 
     suspend fun clearAll()
+
+    suspend fun replaceAllData(data: CalendarData)
 }
 
 class CalendarRepository(private val context: Context) : CalendarDataStore {
@@ -132,6 +136,38 @@ class CalendarRepository(private val context: Context) : CalendarDataStore {
         context.calendarDataStore.edit { preferences ->
             preferences.clear()
         }
+    }
+
+    override suspend fun replaceAllData(data: CalendarData) {
+        context.calendarDataStore.edit { preferences ->
+            if (data.cycleStartDate != null) {
+                preferences[Keys.cycleStartDate] = data.cycleStartDate
+            } else {
+                preferences.remove(Keys.cycleStartDate)
+            }
+            if (data.cycleEndDate != null) {
+                preferences[Keys.cycleEndDate] = data.cycleEndDate
+            } else {
+                preferences.remove(Keys.cycleEndDate)
+            }
+            preferences[Keys.pattern] = json.encodeToString(data.pattern)
+            preferences[Keys.notes] = json.encodeToString(data.notes)
+            preferences[Keys.overrides] = json.encodeToString(data.overrides)
+            preferences[Keys.showLunar] = data.showLunar
+        }
+    }
+
+    override suspend fun getCurrentData(): CalendarData {
+        return context.calendarDataStore.data.map { preferences ->
+            CalendarData(
+                cycleStartDate = preferences[Keys.cycleStartDate],
+                cycleEndDate = preferences[Keys.cycleEndDate],
+                pattern = decodePattern(preferences),
+                notes = decodeNotes(preferences),
+                overrides = decodeOverrides(preferences),
+                showLunar = preferences[Keys.showLunar] ?: true,
+            )
+        }.first()
     }
 
     private fun decodePattern(preferences: Preferences): List<ShiftDefinition> {
