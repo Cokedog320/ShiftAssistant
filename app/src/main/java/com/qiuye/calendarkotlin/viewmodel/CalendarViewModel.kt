@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 
 data class CalendarUiState(
     val currentMonth: YearMonth = YearMonth.now(),
@@ -37,6 +38,7 @@ data class CalendarUiState(
     val isDaySheetVisible: Boolean = false,
     val isRemindersVisible: Boolean = false,
     val isDiaryListVisible: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 private data class SheetVisibility(
@@ -45,6 +47,7 @@ private data class SheetVisibility(
     val daySheet: Boolean,
     val reminders: Boolean,
     val diaryList: Boolean,
+    val error: String?,
 )
 
 data class NoteEntry(
@@ -74,6 +77,7 @@ class CalendarViewModel internal constructor(
     private val daySheetVisible = MutableStateFlow(false)
     private val remindersVisible = MutableStateFlow(false)
     private val diaryListVisible = MutableStateFlow(false)
+    private val errorMessage = MutableStateFlow<String?>(null)
     private val initialCalendarDataWithNotes = CalendarData().toCalendarDataWithNotes()
     private val calendarDataWithNotes: StateFlow<CalendarDataWithNotes> =
         repository.calendarData
@@ -87,19 +91,15 @@ class CalendarViewModel internal constructor(
     val uiState: StateFlow<CalendarUiState> =
         combine(
             calendarDataWithNotes,
-            combine(currentMonth, selectedDate, ::Pair),
+            currentMonth,
+            selectedDate,
             combine(
-                listOf(settingsVisible, notesVisible, daySheetVisible, remindersVisible, diaryListVisible)
-            ) { array ->
-                SheetVisibility(
-                    settings = array[0],
-                    notes = array[1],
-                    daySheet = array[2],
-                    reminders = array[3],
-                    diaryList = array[4]
-                )
+                combine(settingsVisible, notesVisible, daySheetVisible) { s, n, d -> Triple(s, n, d) },
+                combine(remindersVisible, diaryListVisible, errorMessage) { r, dl, e -> Triple(r, dl, e) }
+            ) { a, b ->
+                SheetVisibility(a.first, a.second, a.third, b.first, b.second, b.third)
             }
-        ) { dataWithNotes, (month, selected), visibility ->
+        ) { dataWithNotes, month, selected, visibility ->
             CalendarUiState(
                 currentMonth = month,
                 selectedDate = selected,
@@ -110,6 +110,7 @@ class CalendarViewModel internal constructor(
                 isDaySheetVisible = visibility.daySheet,
                 isRemindersVisible = visibility.reminders,
                 isDiaryListVisible = visibility.diaryList,
+                errorMessage = visibility.error,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -124,6 +125,7 @@ class CalendarViewModel internal constructor(
                 isDaySheetVisible = daySheetVisible.value,
                 isRemindersVisible = remindersVisible.value,
                 isDiaryListVisible = diaryListVisible.value,
+                errorMessage = errorMessage.value,
             ),
         )
 
@@ -199,8 +201,6 @@ class CalendarViewModel internal constructor(
         diaryListVisible.value = false
     }
 
-
-
     fun jumpToDate(date: LocalDate) {
         closeAllSheets()
         currentMonth.value = YearMonth.from(date)
@@ -216,11 +216,29 @@ class CalendarViewModel internal constructor(
     fun importData(jsonString: String) {
         viewModelScope.launch {
             runCatching {
+                val element = json.parseToJsonElement(jsonString)
+                val jsonObject = element.jsonObject
+                val hasExpectedKeys = jsonObject.containsKey("pattern") ||
+                        jsonObject.containsKey("notes") ||
+                        jsonObject.containsKey("overrides") ||
+                        jsonObject.containsKey("cycleStartDate") ||
+                        jsonObject.containsKey("cycleEndDate") ||
+                        jsonObject.containsKey("showLunar")
+                if (!hasExpectedKeys) {
+                    throw IllegalArgumentException("Not a calendar backup file")
+                }
                 json.decodeFromString<CalendarData>(jsonString)
             }.onSuccess { data ->
                 repository.replaceAllData(data)
+                errorMessage.value = null
+            }.onFailure {
+                errorMessage.value = "导入失败：文件格式不正确或已损坏"
             }
         }
+    }
+
+    fun clearErrorMessage() {
+        errorMessage.value = null
     }
 
     fun saveDayDetail(date: LocalDate, note: String, overrideShift: ShiftDefinition?) {
@@ -327,5 +345,3 @@ class CalendarViewModel internal constructor(
         }
     }
 }
-
-

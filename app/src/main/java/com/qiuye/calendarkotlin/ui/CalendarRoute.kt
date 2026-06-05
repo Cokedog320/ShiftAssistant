@@ -22,6 +22,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -113,15 +115,18 @@ fun CalendarRoute(
                     }
                     if (!json.isNullOrBlank()) {
                         viewModel.importData(json)
+                    } else {
+                        viewModel.importData("INVALID_JSON")
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    viewModel.importData("INVALID_JSON")
                 }
             }
         }
     }
 
     CalendarScreen(
+        viewModel = viewModel,
         uiState = uiState,
         reminders = reminders,
         diaryDateKeys = diaryDateKeys,
@@ -186,13 +191,14 @@ fun CalendarRoute(
         onNavigateToDiaryEdit = onNavigateToDiaryEdit,
         onDeleteNote = viewModel::deleteNote,
         onExport = { exportLauncher.launch("calendar_backup.json") },
-        onImport = { importLauncher.launch(arrayOf("application/json")) },
+        onImport = { importLauncher.launch(arrayOf("*/*")) },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalendarScreen(
+    viewModel: CalendarViewModel,
     uiState: CalendarUiState,
     reminders: List<com.qiuye.calendarkotlin.tasks.data.ReminderEntity>,
     diaryDateKeys: Set<String>,
@@ -232,6 +238,7 @@ private fun CalendarScreen(
 ) {
     val palette = remember(uiState.currentMonth.monthValue) { seasonPaletteFor(uiState.currentMonth.monthValue) }
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val latestOnMonthChanged = rememberUpdatedState(onMonthChanged)
     val latestCurrentMonth = rememberUpdatedState(uiState.currentMonth)
     val pagerState = rememberPagerState(
@@ -273,8 +280,16 @@ private fun CalendarScreen(
             }
     }
 
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearErrorMessage()
+        }
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

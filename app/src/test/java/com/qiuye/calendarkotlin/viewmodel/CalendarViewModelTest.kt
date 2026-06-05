@@ -274,6 +274,93 @@ class CalendarViewModelTest {
 
         assertEquals(initialData, repository.data.value)
     }
+
+    @Test
+    fun importDataSetsErrorMessageOnFailure() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            viewModel.importData("invalid json")
+            advanceUntilIdle()
+
+            assertEquals("导入失败：文件格式不正确或已损坏", viewModel.uiState.value.errorMessage)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun importDataSetsErrorMessageOnUnrelatedJson() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            val unrelatedJson = "{\"someOtherField\": 1234, \"hello\": \"world\"}"
+            viewModel.importData(unrelatedJson)
+            advanceUntilIdle()
+
+            assertEquals("导入失败：文件格式不正确或已损坏", viewModel.uiState.value.errorMessage)
+            assertEquals(initialData, repository.data.value)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun importDataClearsErrorMessageOnSuccess() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            viewModel.importData("invalid json")
+            advanceUntilIdle()
+            assertEquals("导入失败：文件格式不正确或已损坏", viewModel.uiState.value.errorMessage)
+
+            val newData = CalendarData(showLunar = false)
+            viewModel.importData(Json.encodeToString(newData))
+            advanceUntilIdle()
+
+            assertNull(viewModel.uiState.value.errorMessage)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun clearErrorMessageResetsMessage() = runTest {
+        val initialData = CalendarData(showLunar = true)
+        val repository = FakeCalendarDataStore(initialData)
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            viewModel.importData("invalid json")
+            advanceUntilIdle()
+            assertEquals("导入失败：文件格式不正确或已损坏", viewModel.uiState.value.errorMessage)
+
+            viewModel.clearErrorMessage()
+            advanceUntilIdle()
+
+            assertNull(viewModel.uiState.value.errorMessage)
+        } finally {
+            collector.cancel()
+        }
+    }
 }
 
 private fun assertCalendarDataMatchesNoteEntries(state: CalendarUiState) {
