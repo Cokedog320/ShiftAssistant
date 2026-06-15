@@ -47,10 +47,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material.icons.rounded.Settings
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -149,10 +147,10 @@ fun EditTaskScreen(
         }
     }
 
-    var title by rememberSaveable(reminderId) { mutableStateOf("") }
-    var note by rememberSaveable(reminderId) { mutableStateOf("") }
-    var dateStartMillis by rememberSaveable(reminderId) { mutableStateOf(nowDateStartMillis()) }
-    var minutesOfDay by rememberSaveable(reminderId) { mutableStateOf(roundedUpFiveMinuteSlot().second) }
+    var title by rememberSaveable(reminderId, initialDateMillis) { mutableStateOf("") }
+    val parsedTitle = remember(title) { title.lines().firstOrNull()?.trim().orEmpty() }
+    var dateStartMillis by rememberSaveable(reminderId, initialDateMillis) { mutableStateOf(nowDateStartMillis()) }
+    var minutesOfDay by rememberSaveable(reminderId, initialDateMillis) { mutableStateOf(roundedUpFiveMinuteSlot().second) }
     var loadedReminder by rememberSaveable(reminderId) { mutableStateOf(false) }
     var missingReminder by rememberSaveable(reminderId) { mutableStateOf(false) }
     var statusMessage by rememberSaveable(reminderId) { mutableStateOf<String?>(null) }
@@ -162,27 +160,15 @@ fun EditTaskScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var pendingSave by remember { mutableStateOf(false) }
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
-    val sharedPrefs = remember { context.getSharedPreferences("reminder_settings", Context.MODE_PRIVATE) }
-    var morningHour by remember { mutableStateOf(sharedPrefs.getInt("morning_hour", 9)) }
-    var morningMinute by remember { mutableStateOf(sharedPrefs.getInt("morning_minute", 0)) }
-    var afternoonHour by remember { mutableStateOf(sharedPrefs.getInt("afternoon_hour", 13)) }
-    var afternoonMinute by remember { mutableStateOf(sharedPrefs.getInt("afternoon_minute", 0)) }
-    var eveningHour by remember { mutableStateOf(sharedPrefs.getInt("evening_hour", 20)) }
-    var eveningMinute by remember { mutableStateOf(sharedPrefs.getInt("evening_minute", 0)) }
-    var showCustomPresetsDialog by remember { mutableStateOf(false) }
-    var activePresetEditing by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(reminderId) {
+    LaunchedEffect(reminderId, initialDateMillis) {
         if (reminderId == null) {
             val todayStart = startOfDayMillis(System.currentTimeMillis())
             val targetStart = startOfDayMillis(initialDateMillis ?: System.currentTimeMillis())
             dateStartMillis = targetStart
-            
-            val initialMorningHour = sharedPrefs.getInt("morning_hour", 9)
-            val initialMorningMinute = sharedPrefs.getInt("morning_minute", 0)
 
             if (targetStart != todayStart) {
-                minutesOfDay = initialMorningHour * 60 + initialMorningMinute
+                minutesOfDay = 9 * 60
             } else {
                 val (roundedDateMillis, roundedMinutes) = roundedUpFiveMinuteSlot()
                 minutesOfDay = roundedMinutes
@@ -198,8 +184,7 @@ fun EditTaskScreen(
             return@LaunchedEffect
         }
 
-        title = reminder.title
-        note = reminder.note
+        title = reminder.title.trimEnd() + if (reminder.note.trim().isEmpty()) "" else "\n" + reminder.note.trim()
         dateStartMillis = startOfDayMillis(reminder.scheduledAtMillis)
         minutesOfDay = extractMinutesOfDay(reminder.scheduledAtMillis)
         loadedReminder = true
@@ -207,7 +192,11 @@ fun EditTaskScreen(
 
     suspend fun performSave(allowPast: Boolean) {
         pendingSave = true
-        when (val result = onSave(reminderId, title, note, dateStartMillis, minutesOfDay, allowPast)) {
+        val lines = title.lines()
+        val titleToSave = lines.firstOrNull()?.trim().orEmpty()
+        val noteToSave = lines.drop(1).joinToString("\n").trim()
+
+        when (val result = onSave(reminderId, titleToSave, noteToSave, dateStartMillis, minutesOfDay, allowPast)) {
             is SaveReminderResult.Success -> {
                 val baseMessage = if (result.scheduledAlarm) "保存成功" else "已保存（时间已过去，不会闹铃）"
                 val warning = if (result.needsNotificationWarning || result.needsExactAlarmWarning) {
@@ -315,6 +304,8 @@ fun EditTaskScreen(
         )
     }
 
+
+
     if (showPastConfirm) {
         AlertDialog(
             onDismissRequest = { showPastConfirm = false },
@@ -394,13 +385,8 @@ fun EditTaskScreen(
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (!pendingSave && title.isNotBlank()) Color(0xFF5EBC83) else Color(0xFFE5E5E5))
-                            .clickable(enabled = !pendingSave && title.isNotBlank()) {
-                                if (title.trim().isEmpty()) {
-                                    statusMessage = "标题不能为空"
-                                    return@clickable
-                                }
-                                val scheduledAt = combineDateAndMinutes(dateStartMillis, minutesOfDay)
+                            .background(if (!pendingSave && parsedTitle.isNotBlank()) Color(0xFF5EBC83) else Color(0xFFE5E5E5))
+                            .clickable(enabled = !pendingSave && parsedTitle.isNotBlank()) {
                                 scope.launch { performSave(allowPast = false) }
                             }
                             .padding(horizontal = 16.dp, vertical = 6.dp)
@@ -431,33 +417,6 @@ fun EditTaskScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 任务标题卡片
-                Surface(
-                    color = Color.White,
-                    shape = RoundedCornerShape(12.dp),
-                    shadowElevation = 1.dp,
-                    border = BorderStroke(1.dp, Color(0xFFE5E5E5).copy(alpha = 0.4f)),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp)
-                ) {
-                    TextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { 
-                            Text("准备做什么？", color = Color(0xFFCCCCCC), fontSize = 18.sp) 
-                        },
-                        textStyle = TextStyle(fontSize = 18.sp, color = Color(0xFF333333)),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                        ),
-                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-                    )
-                }
-
                 // 日期时间组合卡片
                 Surface(
                     color = Color.White,
@@ -487,6 +446,47 @@ fun EditTaskScreen(
                                 Icon(Icons.Rounded.Notifications, contentDescription = null, tint = Color(0xFF68B48B), modifier = Modifier.size(20.dp))
                             }
                         )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = Color(0xFFE5E5E5).copy(alpha = 0.4f)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "快捷",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            val now = System.currentTimeMillis()
+                            listOf(
+                                Triple("早上", 9, 0),
+                                Triple("下午", 13, 0),
+                                Triple("晚上", 20, 0)
+                            ).forEach { (label, h, m) ->
+                                val minutes = h * 60 + m
+                                val presetMillis = combineDateAndMinutes(dateStartMillis, minutes)
+                                val isPast = presetMillis <= now
+                                val isSelected = minutesOfDay == minutes
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { minutesOfDay = minutes },
+                                    enabled = !isPast,
+                                    label = { Text("$label ${String.format("%02d:%02d", h, m)}", style = MaterialTheme.typography.bodySmall) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f),
+                                        disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -532,7 +532,7 @@ fun EditTaskScreen(
                     }
                 }
 
-                // 备注卡片
+                // 任务内容卡片
                 Surface(
                     color = Color.White,
                     shape = RoundedCornerShape(12.dp),
@@ -540,31 +540,12 @@ fun EditTaskScreen(
                     border = BorderStroke(1.dp, Color(0xFFE5E5E5).copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("备注", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color(0xFF333333))
-                            Spacer(modifier = Modifier.weight(1f))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFFF2ECD4))
-                                    .clickable {
-                                        focusManager.clearFocus(force = true)
-                                        keyboardController?.hide()
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                            ) {
-                                Text("完成输入", fontSize = 12.sp, color = Color(0xFF333333))
-                            }
-                        }
+                    Box(modifier = Modifier.padding(16.dp)) {
                         TextField(
-                            value = note,
-                            onValueChange = { note = it },
-                            modifier = Modifier.fillMaxWidth().height(128.dp),
-                            placeholder = { Text("添加备注信息...", color = Color(0xFF999999), fontSize = 15.sp) },
+                            value = title,
+                            onValueChange = { title = it },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp),
+                            placeholder = { Text("准备做什么？", color = Color(0xFF333333).copy(alpha = 0.4f), fontSize = 16.sp) },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -572,7 +553,7 @@ fun EditTaskScreen(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
                             ),
-                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
+                            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default)
                         )
                     }
                 }

@@ -46,7 +46,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,6 +92,7 @@ fun RemindersBottomSheet(
     onAddReminder: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
     var keyword by remember { mutableStateOf("") }
     var selectedMonth by remember { mutableStateOf<YearMonth?>(null) }
     var selectedScope by remember { mutableStateOf(ReminderScope.ALL) }
@@ -183,7 +186,12 @@ fun RemindersBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         FilledIconButton(
-                            onClick = onAddReminder,
+                            onClick = {
+                                coroutineScope.launch {
+                                    sheetState.hide()
+                                    onAddReminder()
+                                }
+                            },
                             modifier = Modifier.size(32.dp),
                         ) {
                             Icon(Icons.Rounded.Add, contentDescription = "添加提醒", modifier = Modifier.size(18.dp))
@@ -299,14 +307,22 @@ fun RemindersBottomSheet(
                 items(filteredReminders, key = { it.id }) { reminder ->
                     ReminderItemCard(
                         reminder = reminder,
-                        onClick = { onOpenReminder(reminder) },
+                        onClick = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                onOpenReminder(reminder)
+                            }
+                        },
                         onToggleCompleted = { onToggleReminder(reminder) },
                         onDelete = { onDeleteReminder(reminder) },
                         onJumpToDate = {
-                            val localDate = java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
-                                .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
-                                .toLocalDate()
-                            onJumpToDate(localDate)
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                val localDate = java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
+                                    .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
+                                    .toLocalDate()
+                                onJumpToDate(localDate)
+                            }
                         }
                     )
                 }

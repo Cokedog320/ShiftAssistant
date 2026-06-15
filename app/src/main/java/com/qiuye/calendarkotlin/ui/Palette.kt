@@ -1,19 +1,25 @@
 ﻿package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.LocalFlorist
+import androidx.compose.material.icons.rounded.WbSunny
+import androidx.compose.material.icons.rounded.Eco
+import androidx.compose.material.icons.rounded.AcUnit
 import com.qiuye.calendarkotlin.model.ShiftColorOption
 
-data class SeasonPalette(val name: String, val accent: Color, val background: List<Color>)
+data class SeasonPalette(val name: String, val icon: ImageVector, val accent: Color, val background: List<Color>)
 data class ShiftPalette(val container: Color, val content: Color)
 
 fun seasonPaletteFor(monthValue: Int): SeasonPalette = seasonPalette(monthValue)
 
 private fun seasonPalette(monthValue: Int): SeasonPalette =
     when (monthValue) {
-        in 3..5 -> SeasonPalette("春", Color(0xFF247A5D), listOf(Color(0xFFF3FBF7), Color(0xFFDDF3E8)))
-        in 6..8 -> SeasonPalette("夏", Color(0xFF1769AA), listOf(Color(0xFFF2F8FF), Color(0xFFDCEEFF)))
-        in 9..11 -> SeasonPalette("秋", Color(0xFFB95C09), listOf(Color(0xFFFFF7F0), Color(0xFFFFE7CE)))
-        else -> SeasonPalette("冬", Color(0xFF475569), listOf(Color(0xFFF7F8FB), Color(0xFFE5EBF4)))
+        in 3..5 -> SeasonPalette("春", Icons.Rounded.LocalFlorist, Color(0xFF247A5D), listOf(Color(0xFFF3FBF7), Color(0xFFDDF3E8)))
+        in 6..8 -> SeasonPalette("夏", Icons.Rounded.WbSunny, Color(0xFF1769AA), listOf(Color(0xFFF2F8FF), Color(0xFFDCEEFF)))
+        in 9..11 -> SeasonPalette("秋", Icons.Rounded.Eco, Color(0xFFB95C09), listOf(Color(0xFFFFF7F0), Color(0xFFFFE7CE)))
+        else -> SeasonPalette("冬", Icons.Rounded.AcUnit, Color(0xFF475569), listOf(Color(0xFFF7F8FB), Color(0xFFE5EBF4)))
     }
 
 internal fun ShiftColorOption.palette(): ShiftPalette =

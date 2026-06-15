@@ -3,10 +3,14 @@ package com.qiuye.calendarkotlin.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -295,15 +299,27 @@ private fun CalendarScreen(
                 title = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "日历",
+                            text = "倒班助手",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        Text(
-                            text = "${palette.name} · ${uiState.currentMonth}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = palette.accent,
-                        )
+                        Row(
+                            modifier = Modifier.offset(x = (-4).dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = palette.icon,
+                                contentDescription = palette.name,
+                                tint = palette.accent,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = uiState.currentMonth.toString(),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = palette.accent,
+                            )
+                        }
                     }
                 },
                 actions = {
