@@ -102,8 +102,8 @@ class ShiftPatternTest : BaseUnitTest() {
         val shiftAfter = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 15), data)
         assertEquals("白班", shiftAfter?.name)
 
-        // Date before cycleStartDate should also return "白班" because single-shift patterns are display-unconstrained
+        // Date before cycleStartDate should return null
         val shiftBefore = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 9), data)
-        assertEquals("白班", shiftBefore?.name)
+        assertNull(shiftBefore)
     }
 }

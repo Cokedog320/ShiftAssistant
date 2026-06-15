@@ -55,8 +55,10 @@ object CalendarCalculator {
         val isAllSameShift = calendarData.pattern.all { it.name == calendarData.pattern.first().name }
         if (isAllSameShift) {
             val firstShift = calendarData.pattern.first()
+            val cycleStartDate = calendarData.cycleStartDate?.let(::parseStorageDate)
             val cycleEndDate = calendarData.cycleEndDate?.takeIf { it.isNotBlank() }?.let(::parseStorageDate)
 
+            if (cycleStartDate != null && date.isBefore(cycleStartDate)) return null
             if (cycleEndDate != null && date.isAfter(cycleEndDate)) return null
 
             return firstShift
