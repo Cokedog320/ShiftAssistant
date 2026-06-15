@@ -39,6 +39,7 @@ data class CalendarUiState(
     val isDaySheetVisible: Boolean = false,
     val isRemindersVisible: Boolean = false,
     val isDiaryListVisible: Boolean = false,
+    val isProfileSelectVisible: Boolean = false,
     val errorMessage: String? = null,
 )
 
@@ -48,6 +49,14 @@ private data class SheetVisibility(
     val daySheet: Boolean,
     val reminders: Boolean,
     val diaryList: Boolean,
+    val profileSelect: Boolean,
+    val error: String?,
+)
+
+private data class SecondSheetVisibility(
+    val reminders: Boolean,
+    val diaryList: Boolean,
+    val profileSelect: Boolean,
     val error: String?,
 )
 
@@ -79,6 +88,7 @@ class CalendarViewModel internal constructor(
     private val daySheetVisible = MutableStateFlow(false)
     private val remindersVisible = MutableStateFlow(false)
     private val diaryListVisible = MutableStateFlow(false)
+    private val profileSelectVisible = MutableStateFlow(false)
     private val errorMessage = MutableStateFlow<String?>(null)
     private val initialCalendarDataWithNotes = CalendarData().toCalendarDataWithNotes()
     private val calendarDataWithNotes: StateFlow<CalendarDataWithNotes> =
@@ -97,9 +107,11 @@ class CalendarViewModel internal constructor(
             selectedDate,
             combine(
                 combine(settingsVisible, notesVisible, daySheetVisible) { s, n, d -> Triple(s, n, d) },
-                combine(remindersVisible, diaryListVisible, errorMessage) { r, dl, e -> Triple(r, dl, e) }
+                combine(remindersVisible, diaryListVisible, profileSelectVisible, errorMessage) { r, dl, ps, e ->
+                    SecondSheetVisibility(r, dl, ps, e)
+                }
             ) { a, b ->
-                SheetVisibility(a.first, a.second, a.third, b.first, b.second, b.third)
+                SheetVisibility(a.first, a.second, a.third, b.reminders, b.diaryList, b.profileSelect, b.error)
             }
         ) { dataWithNotes, month, selected, visibility ->
             CalendarUiState(
@@ -112,6 +124,7 @@ class CalendarViewModel internal constructor(
                 isDaySheetVisible = visibility.daySheet,
                 isRemindersVisible = visibility.reminders,
                 isDiaryListVisible = visibility.diaryList,
+                isProfileSelectVisible = visibility.profileSelect,
                 errorMessage = visibility.error,
             )
         }.stateIn(
@@ -127,6 +140,7 @@ class CalendarViewModel internal constructor(
                 isDaySheetVisible = daySheetVisible.value,
                 isRemindersVisible = remindersVisible.value,
                 isDiaryListVisible = diaryListVisible.value,
+                isProfileSelectVisible = profileSelectVisible.value,
                 errorMessage = errorMessage.value,
             ),
         )
@@ -436,11 +450,22 @@ class CalendarViewModel internal constructor(
         }
     }
 
+    fun openProfileSelect() {
+        closeAllSheets()
+        dismissDaySheet(clearSelection = true)
+        profileSelectVisible.value = true
+    }
+
+    fun closeProfileSelect() {
+        profileSelectVisible.value = false
+    }
+
     private fun closeAllSheets() {
         settingsVisible.value = false
         notesVisible.value = false
         remindersVisible.value = false
         diaryListVisible.value = false
+        profileSelectVisible.value = false
     }
 
     private fun CalendarData.toCalendarDataWithNotes(): CalendarDataWithNotes =

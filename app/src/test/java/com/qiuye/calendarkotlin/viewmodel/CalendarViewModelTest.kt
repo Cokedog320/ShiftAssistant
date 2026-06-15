@@ -418,6 +418,30 @@ class CalendarViewModelTest {
             collector.cancel()
         }
     }
+
+    @Test
+    fun profileSelectDialogVisibilityState() = runTest {
+        val repository = FakeCalendarDataStore(CalendarData())
+        val viewModel = CalendarViewModel(repository)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            advanceUntilIdle()
+            assertFalse(viewModel.uiState.value.isProfileSelectVisible)
+
+            viewModel.openProfileSelect()
+            advanceUntilIdle()
+            assertTrue(viewModel.uiState.value.isProfileSelectVisible)
+
+            viewModel.closeProfileSelect()
+            advanceUntilIdle()
+            assertFalse(viewModel.uiState.value.isProfileSelectVisible)
+        } finally {
+            collector.cancel()
+        }
+    }
 }
 
 private fun assertCalendarDataMatchesNoteEntries(state: CalendarUiState) {

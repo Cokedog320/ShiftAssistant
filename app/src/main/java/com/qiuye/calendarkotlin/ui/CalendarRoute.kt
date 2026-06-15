@@ -1,6 +1,7 @@
 package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.EditNote
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -147,6 +149,8 @@ fun CalendarRoute(
         onCloseRemindersCenter = viewModel::closeReminders,
         onOpenDiaryList = viewModel::openDiaryList,
         onCloseDiaryList = viewModel::closeDiaryList,
+        onOpenProfileSelect = viewModel::openProfileSelect,
+        onCloseProfileSelect = viewModel::closeProfileSelect,
         onOpenDiaryEdit = {
             val selected = uiState.selectedDate
             if (selected != null) {
@@ -219,6 +223,8 @@ private fun CalendarScreen(
     onCloseRemindersCenter: () -> Unit,
     onOpenDiaryList: () -> Unit,
     onCloseDiaryList: () -> Unit,
+    onOpenProfileSelect: () -> Unit,
+    onCloseProfileSelect: () -> Unit,
     onOpenDiaryEdit: () -> Unit,
     onSearchDiary: (String) -> Unit,
     onSaveDiary: (java.time.LocalDate, String, String) -> Unit,
@@ -297,12 +303,28 @@ private fun CalendarScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "倒班助手",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clickable { onOpenProfileSelect() }
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .testTag("title_app_bar")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "倒班助手",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = "切换方案",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         Row(
                             modifier = Modifier.offset(x = (-4).dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -315,7 +337,7 @@ private fun CalendarScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = uiState.currentMonth.toString(),
+                                text = "${uiState.calendarData.activeProfile.name} · ${uiState.currentMonth}",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = palette.accent,
                             )
@@ -486,6 +508,15 @@ private fun CalendarScreen(
                     onSwitchProfile = viewModel::switchProfile,
                     onAddProfile = viewModel::addNewProfile,
                     onDeleteProfile = viewModel::deleteProfile,
+                )
+            } else if (uiState.isProfileSelectVisible) {
+                ProfileSelectBottomSheet(
+                    calendarData = uiState.calendarData,
+                    onDismiss = onCloseProfileSelect,
+                    onSwitchProfile = viewModel::switchProfile,
+                    onAddProfile = viewModel::addNewProfile,
+                    onDeleteProfile = viewModel::deleteProfile,
+                    onOpenSettings = onOpenSettings,
                 )
             } else if (uiState.isNotesVisible) {
                 NotesBottomSheet(

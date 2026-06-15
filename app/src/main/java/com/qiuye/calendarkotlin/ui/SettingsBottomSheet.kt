@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ClearAll
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -108,67 +111,10 @@ fun SettingsBottomSheet(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "排班方案",
+                                text = "方案名称",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                var dropdownExpanded by remember { mutableStateOf(false) }
-                                Box {
-                                    OutlinedButton(
-                                        onClick = { dropdownExpanded = true },
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                        modifier = Modifier.testTag("btn_select_profile")
-                                    ) {
-                                        Text(calendarData.activeProfile.name)
-                                    }
-                                    DropdownMenu(
-                                        expanded = dropdownExpanded,
-                                        onDismissRequest = { dropdownExpanded = false }
-                                    ) {
-                                        calendarData.profiles.forEach { profile ->
-                                            DropdownMenuItem(
-                                                text = { Text(profile.name) },
-                                                onClick = {
-                                                    dropdownExpanded = false
-                                                    onSwitchProfile(profile.id)
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-                                OutlinedButton(
-                                    onClick = { onAddProfile("新排班方案") },
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                                    modifier = Modifier.testTag("btn_add_profile")
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Add,
-                                        contentDescription = "新建方案",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("新建")
-                                }
-
-                                if (calendarData.profiles.size > 1) {
-                                    IconButton(
-                                        onClick = { onDeleteProfile(calendarData.activeProfileId) },
-                                        modifier = Modifier.testTag("btn_delete_profile")
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Close,
-                                            contentDescription = "删除当前方案",
-                                            tint = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                }
-                            }
                         }
 
                         OutlinedTextField(
