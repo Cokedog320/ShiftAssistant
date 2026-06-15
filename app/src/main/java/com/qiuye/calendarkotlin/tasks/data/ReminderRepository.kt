@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.tasks.data
+package com.qiuye.calendarkotlin.tasks.data
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -7,7 +7,7 @@ import kotlinx.coroutines.withContext
 class ReminderRepository(
     private val reminderDao: ReminderDao
 ) {
-    fun observeAll(): Flow<List<ReminderEntity>> = reminderDao.observeAll()
+    fun observeAll(profileId: String): Flow<List<ReminderEntity>> = reminderDao.observeAll(profileId)
 
     fun observeById(id: Long): Flow<ReminderEntity?> = reminderDao.observeById(id)
 
@@ -15,8 +15,8 @@ class ReminderRepository(
         reminderDao.getById(id)
     }
 
-    suspend fun getFutureActiveReminders(now: Long): List<ReminderEntity> = withContext(Dispatchers.IO) {
-        reminderDao.getFutureActiveReminders(now)
+    suspend fun getFutureActiveReminders(profileId: String, now: Long): List<ReminderEntity> = withContext(Dispatchers.IO) {
+        reminderDao.getFutureActiveReminders(profileId, now)
     }
 
     suspend fun insert(reminder: ReminderEntity): Long = withContext(Dispatchers.IO) {

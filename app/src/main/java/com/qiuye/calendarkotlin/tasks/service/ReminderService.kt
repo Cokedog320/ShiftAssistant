@@ -5,6 +5,7 @@ import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.ReminderRepository
 import com.qiuye.calendarkotlin.tasks.notification.ReminderNotifier
 import com.qiuye.calendarkotlin.tasks.scheduler.ReminderScheduler
+import com.qiuye.calendarkotlin.data.CalendarDataStore
 import kotlinx.coroutines.flow.Flow
 import android.util.Log
 
@@ -26,9 +27,11 @@ class ReminderService(
     private val context: Context,
     private val notificationPermissionChecker: (Context) -> Boolean = ReminderNotifier::hasNotificationPermission,
     private val notificationDeliverer: (Context, ReminderEntity) -> Boolean = ReminderNotifier::notifyReminder,
-    private val notificationCanceller: (Context, Long) -> Unit = ReminderNotifier::cancelReminderNotification
+    private val notificationCanceller: (Context, Long) -> Unit = ReminderNotifier::cancelReminderNotification,
+    private val calendarRepository: CalendarDataStore? = null
 ) {
-    fun observeReminders(): Flow<List<ReminderEntity>> = repository.observeAll()
+    private val resolvedCalendarRepository = calendarRepository ?: com.qiuye.calendarkotlin.data.CalendarRepository(context.applicationContext)
+    fun observeReminders(profileId: String): Flow<List<ReminderEntity>> = repository.observeAll(profileId)
 
     fun observeReminder(id: Long): Flow<ReminderEntity?> = repository.observeById(id)
 
@@ -41,7 +44,8 @@ class ReminderService(
         title: String,
         note: String,
         scheduledAtMillis: Long,
-        allowPast: Boolean
+        allowPast: Boolean,
+        profileId: String? = null
     ): SaveReminderResult {
         val trimmedTitle = title.trim()
         if (trimmedTitle.isEmpty()) {
@@ -53,6 +57,7 @@ class ReminderService(
             return SaveReminderResult.NeedsPastConfirmation
         }
 
+        val resolvedProfileId = profileId ?: resolvedCalendarRepository.getCurrentData().activeProfileId
         val existing = reminderId?.let { repository.getById(it) }
         val createdAt = existing?.createdAtMillis ?: now
         val reminder = createReminder(
@@ -62,7 +67,8 @@ class ReminderService(
             scheduledAtMillis = scheduledAtMillis,
             isCompleted = existing?.isCompleted ?: false,
             createdAtMillis = createdAt,
-            updatedAtMillis = now
+            updatedAtMillis = now,
+            profileId = existing?.profileId ?: resolvedProfileId
         )
 
         val savedReminder = if (existing == null) {
@@ -73,7 +79,8 @@ class ReminderService(
                 scheduledAtMillis = reminder.scheduledAtMillis,
                 isCompleted = reminder.isCompleted,
                 createdAtMillis = reminder.createdAtMillis,
-                updatedAtMillis = reminder.updatedAtMillis
+                updatedAtMillis = reminder.updatedAtMillis,
+                profileId = reminder.profileId
             )
         } else {
             repository.update(reminder)
@@ -111,7 +118,8 @@ suspend fun deleteReminder(reminderId: Long) {
             scheduledAtMillis = reminder.scheduledAtMillis,
             isCompleted = completed,
             createdAtMillis = reminder.createdAtMillis,
-            updatedAtMillis = System.currentTimeMillis()
+            updatedAtMillis = System.currentTimeMillis(),
+            profileId = reminder.profileId
         )
         repository.update(updated)
         if (completed) {
@@ -123,14 +131,30 @@ suspend fun deleteReminder(reminderId: Long) {
     }
 
     suspend fun restoreSchedules() {
+        val activeProfileId = resolvedCalendarRepository.getCurrentData().activeProfileId
+        restoreSchedulesForProfile(activeProfileId)
+    }
+
+    suspend fun restoreSchedulesForProfile(profileId: String) {
         val now = System.currentTimeMillis()
-        repository.getFutureActiveReminders(now).forEach { reminder ->
+        repository.getFutureActiveReminders(profileId, now).forEach { reminder ->
             runCatching {
                 scheduler.schedule(reminder)
             }.onFailure { e ->
-                Log.e("ReminderService", "Failed to restore schedule for reminder ${reminder.id}", e)
+                Log.e("ReminderService", "Failed to restore schedule for reminder ${reminder.id} in profile $profileId", e)
             }
         }
+    }
+
+    suspend fun rescheduleAlarmsForProfileSwitch(oldProfileId: String, newProfileId: String) {
+        val now = System.currentTimeMillis()
+        // Cancel old profile alarms
+        val oldReminders = repository.getFutureActiveReminders(oldProfileId, now)
+        oldReminders.forEach { scheduler.cancel(it.id) }
+
+        // Schedule new profile alarms
+        val newReminders = repository.getFutureActiveReminders(newProfileId, now)
+        newReminders.forEach { scheduler.schedule(it) }
     }
 
     suspend fun deliverReminder(reminderId: Long) {
@@ -156,16 +180,18 @@ suspend fun deleteReminder(reminderId: Long) {
         scheduledAtMillis: Long,
         isCompleted: Boolean,
         createdAtMillis: Long,
-        updatedAtMillis: Long
+        updatedAtMillis: Long,
+        profileId: String
     ): ReminderEntity {
         return ReminderEntity(
-            id,
-            title,
-            note,
-            scheduledAtMillis,
-            isCompleted,
-            createdAtMillis,
-            updatedAtMillis
+            id = id,
+            title = title,
+            note = note,
+            scheduledAtMillis = scheduledAtMillis,
+            isCompleted = isCompleted,
+            createdAtMillis = createdAtMillis,
+            updatedAtMillis = updatedAtMillis,
+            profileId = profileId
         )
     }
 }

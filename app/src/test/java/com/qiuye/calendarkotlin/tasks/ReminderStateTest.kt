@@ -34,6 +34,7 @@ class ReminderStateTest : BaseUnitTest() {
     fun setUp() {
         MockHelpers.initMocks(this)
         every { scheduler.canScheduleExactAlarms() } returns true
+        every { context.applicationContext } returns context
         val notificationPermissionChecker: (Context) -> Boolean = { true }
         val notificationDeliverer: (Context, ReminderEntity) -> Boolean = { _, _ -> true }
         val notificationCanceller: (Context, Long) -> Unit = { _, _ -> }

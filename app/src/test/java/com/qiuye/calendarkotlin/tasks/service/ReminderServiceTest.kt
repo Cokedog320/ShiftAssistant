@@ -18,6 +18,10 @@ import org.robolectric.RuntimeEnvironment
 import java.util.concurrent.CopyOnWriteArrayList
 import com.qiuye.calendarkotlin.BaseUnitTest
 
+import com.qiuye.calendarkotlin.data.CalendarDataStore
+import com.qiuye.calendarkotlin.model.CalendarData
+import com.qiuye.calendarkotlin.model.ShiftDefinition
+
 class ReminderServiceTest : BaseUnitTest() {
     private lateinit var database: ReminderDatabase
     private lateinit var repository: ReminderRepository
@@ -25,6 +29,21 @@ class ReminderServiceTest : BaseUnitTest() {
     private lateinit var deliveredReminders: MutableList<ReminderEntity>
     private lateinit var cancelledReminderIds: MutableList<Long>
     private lateinit var service: ReminderService
+
+    private val fakeCalendarRepository = object : CalendarDataStore {
+        override val calendarData = kotlinx.coroutines.flow.MutableStateFlow(CalendarData())
+        override suspend fun getCurrentData() = CalendarData()
+        override suspend fun updateDetail(dateKey: String, note: String, overrideShift: ShiftDefinition?) {}
+        override suspend fun updateSettings(
+            cycleStartDate: String?,
+            cycleEndDate: String?,
+            pattern: List<ShiftDefinition>,
+            showLunar: Boolean
+        ) {}
+        override suspend fun clearOverrides() {}
+        override suspend fun clearAll() {}
+        override suspend fun replaceAllData(data: CalendarData) {}
+    }
 
     @Before
     fun setUp() {
@@ -40,6 +59,7 @@ class ReminderServiceTest : BaseUnitTest() {
             repository = repository,
             scheduler = scheduler,
             context = context,
+            calendarRepository = fakeCalendarRepository,
             notificationPermissionChecker = { false },
             notificationDeliverer = { _, reminder ->
                 deliveredReminders += reminder

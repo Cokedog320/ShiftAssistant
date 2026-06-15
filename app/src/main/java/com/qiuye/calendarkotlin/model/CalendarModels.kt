@@ -23,14 +23,55 @@ data class ShiftDefinition(
 )
 
 @Serializable
-data class CalendarData(
+data class ShiftProfile(
+    val id: String,
+    val name: String,
     val cycleStartDate: String? = null,
     val cycleEndDate: String? = null,
     val pattern: List<ShiftDefinition> = defaultPattern,
-    val notes: Map<String, String> = emptyMap(),
     val overrides: Map<String, ShiftDefinition> = emptyMap(),
-    val showLunar: Boolean = true,
+    val notes: Map<String, String> = emptyMap(),
 )
+
+@Serializable
+data class CalendarData(
+    val activeProfileId: String = "default",
+    val profiles: List<ShiftProfile> = listOf(ShiftProfile(id = "default", name = "默认方案")),
+    val showLunar: Boolean = true,
+) {
+    // Secondary constructor for backward compatibility in tests and initialization
+    constructor(
+        cycleStartDate: String? = null,
+        cycleEndDate: String? = null,
+        pattern: List<ShiftDefinition> = defaultPattern,
+        notes: Map<String, String> = emptyMap(),
+        overrides: Map<String, ShiftDefinition> = emptyMap(),
+        showLunar: Boolean = true
+    ) : this(
+        activeProfileId = "default",
+        profiles = listOf(
+            ShiftProfile(
+                id = "default",
+                name = "默认方案",
+                cycleStartDate = cycleStartDate,
+                cycleEndDate = cycleEndDate,
+                pattern = pattern,
+                overrides = overrides,
+                notes = notes
+            )
+        ),
+        showLunar = showLunar
+    )
+
+    val activeProfile: ShiftProfile
+        get() = profiles.find { it.id == activeProfileId } ?: profiles.firstOrNull() ?: ShiftProfile(id = "default", name = "默认方案")
+
+    val cycleStartDate: String? get() = activeProfile.cycleStartDate
+    val cycleEndDate: String? get() = activeProfile.cycleEndDate
+    val pattern: List<ShiftDefinition> get() = activeProfile.pattern
+    val notes: Map<String, String> get() = activeProfile.notes
+    val overrides: Map<String, ShiftDefinition> get() = activeProfile.overrides
+}
 
 data class DayCell(
     val date: LocalDate,

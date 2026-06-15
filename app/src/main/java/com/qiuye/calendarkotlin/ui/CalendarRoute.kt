@@ -227,7 +227,7 @@ private fun CalendarScreen(
     onOpenSelectedDayDetail: () -> Unit,
     onCloseDaySheet: () -> Unit,
     onSaveDayDetail: (java.time.LocalDate, String, com.qiuye.calendarkotlin.model.ShiftDefinition?, Int) -> Unit,
-    onSaveSettings: (String?, String?, List<com.qiuye.calendarkotlin.model.ShiftDefinition>, Boolean) -> Unit,
+    onSaveSettings: (String, String?, String?, List<com.qiuye.calendarkotlin.model.ShiftDefinition>, Boolean) -> Unit,
     onClearOverrides: () -> Unit,
     onJumpToDate: (java.time.LocalDate) -> Unit,
     onToggleTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
@@ -483,6 +483,9 @@ private fun CalendarScreen(
                     onSave = onSaveSettings,
                     onExport = onExport,
                     onImport = onImport,
+                    onSwitchProfile = viewModel::switchProfile,
+                    onAddProfile = viewModel::addNewProfile,
+                    onDeleteProfile = viewModel::deleteProfile,
                 )
             } else if (uiState.isNotesVisible) {
                 NotesBottomSheet(

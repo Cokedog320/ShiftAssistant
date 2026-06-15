@@ -432,21 +432,27 @@ private class FakeCalendarDataStore(initialData: CalendarData) : CalendarDataSto
 
     override suspend fun updateDetail(dateKey: String, note: String, overrideShift: ShiftDefinition?) {
         val current = data.value
-        val nextNotes = current.notes.toMutableMap().apply {
-            if (note.isBlank()) {
-                remove(dateKey)
-            } else {
-                put(dateKey, note.trim())
+        val profiles = current.profiles.toMutableList()
+        val activeIndex = profiles.indexOfFirst { it.id == current.activeProfileId }.takeIf { it != -1 } ?: 0
+        if (activeIndex < profiles.size) {
+            val activeProfile = profiles[activeIndex]
+            val nextNotes = activeProfile.notes.toMutableMap().apply {
+                if (note.isBlank()) {
+                    remove(dateKey)
+                } else {
+                    put(dateKey, note.trim())
+                }
             }
-        }
-        val nextOverrides = current.overrides.toMutableMap().apply {
-            if (overrideShift == null) {
-                remove(dateKey)
-            } else {
-                put(dateKey, overrideShift)
+            val nextOverrides = activeProfile.overrides.toMutableMap().apply {
+                if (overrideShift == null) {
+                    remove(dateKey)
+                } else {
+                    put(dateKey, overrideShift)
+                }
             }
+            profiles[activeIndex] = activeProfile.copy(notes = nextNotes, overrides = nextOverrides)
         }
-        data.value = current.copy(notes = nextNotes, overrides = nextOverrides)
+        data.value = current.copy(profiles = profiles)
     }
 
     override suspend fun updateSettings(
@@ -455,16 +461,31 @@ private class FakeCalendarDataStore(initialData: CalendarData) : CalendarDataSto
         pattern: List<ShiftDefinition>,
         showLunar: Boolean,
     ) {
-        data.value = data.value.copy(
-            cycleStartDate = cycleStartDate,
-            cycleEndDate = cycleEndDate,
-            pattern = pattern,
-            showLunar = showLunar,
+        val current = data.value
+        val profiles = current.profiles.toMutableList()
+        val activeIndex = profiles.indexOfFirst { it.id == current.activeProfileId }.takeIf { it != -1 } ?: 0
+        if (activeIndex < profiles.size) {
+            val activeProfile = profiles[activeIndex]
+            profiles[activeIndex] = activeProfile.copy(
+                cycleStartDate = cycleStartDate,
+                cycleEndDate = cycleEndDate,
+                pattern = pattern
+            )
+        }
+        data.value = current.copy(
+            profiles = profiles,
+            showLunar = showLunar
         )
     }
 
     override suspend fun clearOverrides() {
-        data.value = data.value.copy(overrides = emptyMap())
+        val current = data.value
+        val profiles = current.profiles.toMutableList()
+        val activeIndex = profiles.indexOfFirst { it.id == current.activeProfileId }.takeIf { it != -1 } ?: 0
+        if (activeIndex < profiles.size) {
+            profiles[activeIndex] = profiles[activeIndex].copy(overrides = emptyMap())
+        }
+        data.value = current.copy(profiles = profiles)
     }
 
     override suspend fun clearAll() {

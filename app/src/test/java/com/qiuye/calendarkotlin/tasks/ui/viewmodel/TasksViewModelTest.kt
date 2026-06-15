@@ -9,7 +9,10 @@ import org.junit.Before
 import org.junit.Test
 
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
+import com.qiuye.calendarkotlin.data.CalendarDataStore
+import com.qiuye.calendarkotlin.model.CalendarData
 import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -17,13 +20,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class TasksViewModelTest {
     private lateinit var viewModel: TasksViewModel
     private lateinit var mockService: ReminderService
+    private lateinit var mockCalendarDataStore: CalendarDataStore
     private val remindersFlow = MutableStateFlow<List<ReminderEntity>>(emptyList())
 
     @Before
     fun setUp() {
         mockService = mockk(relaxed = true)
-        every { mockService.observeReminders() } returns remindersFlow
-        viewModel = TasksViewModel(mockService)
+        mockCalendarDataStore = mockk(relaxed = true)
+        every { mockCalendarDataStore.calendarData } returns MutableStateFlow(CalendarData())
+        coEvery { mockCalendarDataStore.getCurrentData() } returns CalendarData()
+        every { mockService.observeReminders(any()) } returns remindersFlow
+        viewModel = TasksViewModel(mockService, mockCalendarDataStore)
     }
 
     @Test

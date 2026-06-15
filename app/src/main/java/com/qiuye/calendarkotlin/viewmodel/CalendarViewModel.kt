@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 
 data class CalendarUiState(
     val currentMonth: YearMonth = YearMonth.now(),
@@ -65,6 +66,7 @@ private data class CalendarDataWithNotes(
 
 class CalendarViewModel internal constructor(
     private val repository: CalendarDataStore,
+    private val reminderService: com.qiuye.calendarkotlin.tasks.service.ReminderService? = null,
 ) : ViewModel() {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -223,11 +225,43 @@ class CalendarViewModel internal constructor(
                         jsonObject.containsKey("overrides") ||
                         jsonObject.containsKey("cycleStartDate") ||
                         jsonObject.containsKey("cycleEndDate") ||
-                        jsonObject.containsKey("showLunar")
+                        jsonObject.containsKey("showLunar") ||
+                        jsonObject.containsKey("profiles")
                 if (!hasExpectedKeys) {
                     throw IllegalArgumentException("Not a calendar backup file")
                 }
-                json.decodeFromString<CalendarData>(jsonString)
+
+                if (jsonObject.containsKey("profiles")) {
+                    json.decodeFromString<CalendarData>(jsonString)
+                } else {
+                    val cycleStartDate = jsonObject["cycleStartDate"]?.let { json.decodeFromJsonElement<String?>(it) }
+                    val cycleEndDate = jsonObject["cycleEndDate"]?.let { json.decodeFromJsonElement<String?>(it) }
+                    val pattern = jsonObject["pattern"]?.let { json.decodeFromJsonElement<List<ShiftDefinition>>(it) } ?: defaultPattern
+                    val notes = jsonObject["notes"]?.let { json.decodeFromJsonElement<Map<String, String>>(it) } ?: emptyMap()
+                    val overrides = jsonObject["overrides"]?.let { json.decodeFromJsonElement<Map<String, ShiftDefinition>>(it) } ?: emptyMap()
+                    val showLunar = jsonObject["showLunar"]?.let { json.decodeFromJsonElement<Boolean>(it) } ?: true
+
+                    val importedProfile = com.qiuye.calendarkotlin.model.ShiftProfile(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = "导入的方案",
+                        cycleStartDate = cycleStartDate,
+                        cycleEndDate = cycleEndDate,
+                        pattern = pattern,
+                        overrides = overrides,
+                        notes = notes
+                    )
+
+                    val current = repository.getCurrentData()
+                    val oldActiveId = current.activeProfileId
+                    val updated = current.copy(
+                        profiles = current.profiles + importedProfile,
+                        activeProfileId = importedProfile.id,
+                        showLunar = showLunar
+                    )
+
+                    reminderService?.rescheduleAlarmsForProfileSwitch(oldActiveId, importedProfile.id)
+                    updated
+                }
             }.onSuccess { data ->
                 repository.replaceAllData(data)
                 errorMessage.value = null
@@ -239,6 +273,61 @@ class CalendarViewModel internal constructor(
 
     fun clearErrorMessage() {
         errorMessage.value = null
+    }
+
+    fun switchProfile(newProfileId: String) {
+        viewModelScope.launch {
+            val current = repository.getCurrentData()
+            val oldId = current.activeProfileId
+            if (oldId == newProfileId) return@launch
+            val updated = current.copy(activeProfileId = newProfileId)
+            repository.replaceAllData(updated)
+
+            reminderService?.rescheduleAlarmsForProfileSwitch(oldId, newProfileId)
+        }
+    }
+
+    fun addNewProfile(name: String) {
+        viewModelScope.launch {
+            val current = repository.getCurrentData()
+            val newId = java.util.UUID.randomUUID().toString()
+            val newProfile = com.qiuye.calendarkotlin.model.ShiftProfile(
+                id = newId,
+                name = name.trim().ifBlank { "新排班方案" },
+                pattern = emptyList() // start empty as requested
+            )
+            val updatedProfiles = current.profiles + newProfile
+            val updated = current.copy(
+                activeProfileId = newId,
+                profiles = updatedProfiles
+            )
+            repository.replaceAllData(updated)
+
+            reminderService?.rescheduleAlarmsForProfileSwitch(current.activeProfileId, newId)
+        }
+    }
+
+    fun deleteProfile(profileId: String) {
+        viewModelScope.launch {
+            val current = repository.getCurrentData()
+            if (current.profiles.size <= 1) return@launch
+            val activeId = current.activeProfileId
+            val updatedProfiles = current.profiles.filter { it.id != profileId }
+            val newActiveId = if (activeId == profileId) {
+                updatedProfiles.first().id
+            } else {
+                activeId
+            }
+            val updated = current.copy(
+                activeProfileId = newActiveId,
+                profiles = updatedProfiles
+            )
+            repository.replaceAllData(updated)
+
+            if (activeId != newActiveId) {
+                reminderService?.rescheduleAlarmsForProfileSwitch(activeId, newActiveId)
+            }
+        }
     }
 
     fun saveDayDetail(date: LocalDate, note: String, overrideShift: ShiftDefinition?, durationDays: Int = 1) {
@@ -263,10 +352,19 @@ class CalendarViewModel internal constructor(
                 }
             }
 
+            val updatedProfiles = current.profiles.map { profile ->
+                if (profile.id == current.activeProfileId) {
+                    profile.copy(
+                        notes = updatedNotes,
+                        overrides = updatedOverrides
+                    )
+                } else {
+                    profile
+                }
+            }
             repository.replaceAllData(
                 current.copy(
-                    notes = updatedNotes,
-                    overrides = updatedOverrides
+                    profiles = updatedProfiles
                 )
             )
             dismissDaySheet(clearSelection = true)
@@ -286,6 +384,7 @@ class CalendarViewModel internal constructor(
     }
 
     fun saveSettings(
+        profileName: String,
         cycleStartDate: String?,
         cycleEndDate: String?,
         pattern: List<ShiftDefinition>,
@@ -295,11 +394,24 @@ class CalendarViewModel internal constructor(
         val normalizedCycleEndDate = cycleEndDate?.takeIf { it.isNotBlank() }
         val normalizedPattern = pattern.ifEmpty { defaultPattern }
         viewModelScope.launch {
-            repository.updateSettings(
-                cycleStartDate = normalizedCycleStartDate,
-                cycleEndDate = normalizedCycleEndDate,
-                pattern = normalizedPattern,
-                showLunar = showLunar,
+            val current = repository.getCurrentData()
+            val updatedProfiles = current.profiles.map { profile ->
+                if (profile.id == current.activeProfileId) {
+                    profile.copy(
+                        name = profileName.trim().ifBlank { profile.name },
+                        cycleStartDate = normalizedCycleStartDate,
+                        cycleEndDate = normalizedCycleEndDate,
+                        pattern = normalizedPattern
+                    )
+                } else {
+                    profile
+                }
+            }
+            repository.replaceAllData(
+                current.copy(
+                    profiles = updatedProfiles,
+                    showLunar = showLunar
+                )
             )
 
             normalizedCycleStartDate
@@ -358,8 +470,10 @@ class CalendarViewModel internal constructor(
     companion object {
         fun factory(context: Context): ViewModelProvider.Factory = viewModelFactory {
             initializer {
+                val appContext = context.applicationContext
                 CalendarViewModel(
-                    repository = CalendarRepository(context.applicationContext),
+                    repository = CalendarRepository(appContext),
+                    reminderService = com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(appContext),
                 )
             }
         }

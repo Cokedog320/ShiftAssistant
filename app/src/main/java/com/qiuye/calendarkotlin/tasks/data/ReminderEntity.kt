@@ -12,7 +12,8 @@ data class ReminderEntity(
     val scheduledAtMillis: Long,
     val isCompleted: Boolean,
     val createdAtMillis: Long,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val profileId: String = "default"
 )
 
 

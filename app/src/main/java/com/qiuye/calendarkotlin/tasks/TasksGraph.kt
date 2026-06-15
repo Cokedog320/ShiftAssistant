@@ -8,6 +8,7 @@ import com.qiuye.calendarkotlin.tasks.notification.ReminderNotifier
 import com.qiuye.calendarkotlin.tasks.scheduler.AlarmReminderScheduler
 import com.qiuye.calendarkotlin.tasks.scheduler.ReminderScheduler
 import com.qiuye.calendarkotlin.tasks.service.ReminderService
+import com.qiuye.calendarkotlin.data.CalendarRepository
 
 object TasksGraph {
     @Volatile
@@ -45,7 +46,13 @@ object TasksGraph {
             val currentDatabase = database ?: ReminderDatabase.getInstance(appContext).also { database = it }
             val currentRepository = repository ?: ReminderRepository(currentDatabase.reminderDao()).also { repository = it }
             val currentScheduler = scheduler ?: AlarmReminderScheduler(appContext).also { scheduler = it }
-            service ?: ReminderService(currentRepository, currentScheduler, appContext).also { service = it }
+            val calendarRepo = CalendarRepository(appContext)
+            service ?: ReminderService(
+                repository = currentRepository,
+                scheduler = currentScheduler,
+                context = appContext,
+                calendarRepository = calendarRepo
+            ).also { service = it }
         }
     }
 

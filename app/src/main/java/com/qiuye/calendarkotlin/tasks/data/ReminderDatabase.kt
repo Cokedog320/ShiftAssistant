@@ -11,7 +11,7 @@ import com.qiuye.calendarkotlin.diary.data.DiaryEntity
 
 @Database(
     entities = [ReminderEntity::class, DiaryEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class ReminderDatabase : RoomDatabase() {
@@ -80,7 +80,13 @@ abstract class ReminderDatabase : RoomDatabase() {
             }
         }
 
-        val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE reminders ADD COLUMN profileId TEXT NOT NULL DEFAULT 'default'")
+            }
+        }
+
+        val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
         fun getInstance(context: Context): ReminderDatabase {
             return instance ?: synchronized(this) {

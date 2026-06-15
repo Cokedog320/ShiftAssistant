@@ -171,4 +171,33 @@ class ReminderDatabaseMigrationTest {
 
         db.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        var db = helper.createDatabase(TEST_DB, 3)
+
+        // Insert reminder data in version 3
+        db.execSQL(
+            """
+            INSERT INTO reminders (title, note, scheduledAtMillis, isCompleted, createdAtMillis, updatedAtMillis)
+            VALUES ('V3 Title', 'V3 Note', 1800, 0, 900, 900)
+            """.trimIndent()
+        )
+
+        db.close()
+
+        // Migrate to version 4
+        db = helper.runMigrationsAndValidate(TEST_DB, 4, true, ReminderDatabase.MIGRATION_3_4)
+
+        // Verify reminder data is preserved and has default profileId
+        val cursor = db.query("SELECT * FROM reminders ORDER BY id ASC")
+        assertEquals(1, cursor.count)
+        cursor.moveToFirst()
+        assertEquals("V3 Title", cursor.getString(cursor.getColumnIndexOrThrow("title")))
+        assertEquals("default", cursor.getString(cursor.getColumnIndexOrThrow("profileId")))
+        cursor.close()
+
+        db.close()
+    }
 }

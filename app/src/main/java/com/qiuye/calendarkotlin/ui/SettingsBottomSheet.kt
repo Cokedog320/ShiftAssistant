@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.ui
+package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +28,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -57,11 +61,15 @@ fun SettingsBottomSheet(
     calendarData: CalendarData,
     onDismiss: () -> Unit,
     onClearOverrides: () -> Unit,
-    onSave: (String?, String?, List<ShiftDefinition>, Boolean) -> Unit,
+    onSave: (String, String?, String?, List<ShiftDefinition>, Boolean) -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
+    onSwitchProfile: (String) -> Unit,
+    onAddProfile: (String) -> Unit,
+    onDeleteProfile: (String) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var profileName by remember(calendarData.activeProfileId) { mutableStateOf(calendarData.activeProfile.name) }
     var startDate by remember(calendarData.cycleStartDate) { mutableStateOf(calendarData.cycleStartDate.orEmpty()) }
     var endDate by remember(calendarData.cycleEndDate) { mutableStateOf(calendarData.cycleEndDate.orEmpty()) }
     var showLunar by remember(calendarData.showLunar) { mutableStateOf(calendarData.showLunar) }
@@ -83,6 +91,94 @@ fun SettingsBottomSheet(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                 )
+            }
+            item {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = Color.White.copy(alpha = 0.74f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "排班方案",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                var dropdownExpanded by remember { mutableStateOf(false) }
+                                Box {
+                                    OutlinedButton(
+                                        onClick = { dropdownExpanded = true },
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                        modifier = Modifier.testTag("btn_select_profile")
+                                    ) {
+                                        Text(calendarData.activeProfile.name)
+                                    }
+                                    DropdownMenu(
+                                        expanded = dropdownExpanded,
+                                        onDismissRequest = { dropdownExpanded = false }
+                                    ) {
+                                        calendarData.profiles.forEach { profile ->
+                                            DropdownMenuItem(
+                                                text = { Text(profile.name) },
+                                                onClick = {
+                                                    dropdownExpanded = false
+                                                    onSwitchProfile(profile.id)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                OutlinedButton(
+                                    onClick = { onAddProfile("新排班方案") },
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                                    modifier = Modifier.testTag("btn_add_profile")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Add,
+                                        contentDescription = "新建方案",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("新建")
+                                }
+
+                                if (calendarData.profiles.size > 1) {
+                                    IconButton(
+                                        onClick = { onDeleteProfile(calendarData.activeProfileId) },
+                                        modifier = Modifier.testTag("btn_delete_profile")
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Close,
+                                            contentDescription = "删除当前方案",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = profileName,
+                            onValueChange = { profileName = it },
+                            modifier = Modifier.fillMaxWidth().testTag("field_profile_name"),
+                            label = { Text("方案名称") }
+                        )
+                    }
+                }
             }
             item {
                 DatePickerField(
@@ -223,6 +319,7 @@ fun SettingsBottomSheet(
                     TextButton(
                         onClick = {
                             onSave(
+                                profileName,
                                 startDate.ifBlank { null },
                                 endDate.ifBlank { null },
                                 pattern.toList().ifEmpty { defaultPattern },
