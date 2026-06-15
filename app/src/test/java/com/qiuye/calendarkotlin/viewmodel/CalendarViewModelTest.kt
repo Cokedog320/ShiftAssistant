@@ -523,6 +523,10 @@ class CalendarViewModelTest {
             assertNotNull(newProfile)
             assertEquals("自定义方案", newProfile!!.name)
             assertEquals(newProfile.id, viewModel.uiState.value.calendarData.activeProfileId)
+            
+            // Settings sheet should be opened automatically
+            assertTrue(viewModel.uiState.value.isSettingsVisible)
+            assertFalse(viewModel.uiState.value.isProfileSelectVisible)
         } finally {
             collector.cancel()
         }

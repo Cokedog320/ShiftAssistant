@@ -322,6 +322,9 @@ class CalendarViewModel internal constructor(
             repository.replaceAllData(updated)
 
             reminderService?.rescheduleAlarmsForProfileSwitch(current.activeProfileId, newId)
+
+            profileSelectVisible.value = false
+            settingsVisible.value = true
         }
     }
 
