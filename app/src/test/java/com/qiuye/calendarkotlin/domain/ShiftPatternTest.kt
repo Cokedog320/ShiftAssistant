@@ -74,4 +74,36 @@ class ShiftPatternTest : BaseUnitTest() {
         val shift = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 1, 1), data)
         assertNull(shift)
     }
+
+    @Test
+    fun `getShiftForDate should return shift when pattern is all same and cycleStartDate is null`() {
+        val singleShiftPattern = listOf(ShiftDefinition("1", "白班", ShiftColorOption.BLUE))
+        val data = CalendarData(
+            pattern = singleShiftPattern,
+            cycleStartDate = null
+        )
+        val shift = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 15), data)
+        assertNotNull(shift)
+        assertEquals("白班", shift?.name)
+    }
+
+    @Test
+    fun `getShiftForDate should return shift when pattern is all same and cycleStartDate is set and date is valid`() {
+        val singleShiftPattern = listOf(ShiftDefinition("1", "白班", ShiftColorOption.BLUE))
+        val data = CalendarData(
+            pattern = singleShiftPattern,
+            cycleStartDate = "2024-06-10"
+        )
+        
+        // Date on or after cycleStartDate
+        val shiftOn = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 10), data)
+        assertEquals("白班", shiftOn?.name)
+
+        val shiftAfter = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 15), data)
+        assertEquals("白班", shiftAfter?.name)
+
+        // Date before cycleStartDate
+        val shiftBefore = CalendarCalculator.getShiftForDate(LocalDate.of(2024, 6, 9), data)
+        assertNull(shiftBefore)
+    }
 }
