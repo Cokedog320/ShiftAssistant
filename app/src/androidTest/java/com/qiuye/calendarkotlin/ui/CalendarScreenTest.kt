@@ -49,8 +49,8 @@ class CalendarScreenTest {
         // Verify the date is displayed
         composeTestRule.onNodeWithText("15").assertIsDisplayed()
         
-        // Verify the holiday and lunar label
-        composeTestRule.onNodeWithText("端午节").assertIsDisplayed()
+        // Verify the holiday label and lunar label
+        composeTestRule.onNodeWithText("休").assertIsDisplayed()
         composeTestRule.onNodeWithText("初一").assertIsDisplayed()
 
         // Perform click

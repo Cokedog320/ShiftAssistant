@@ -48,7 +48,7 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryEditScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MainActivity : ComponentActivity() {
+public class MainActivity : ComponentActivity() {
     private val openReminderIdFlow = MutableStateFlow<Long?>(null)
     private val themePreferences by lazy { ThemePreferences(applicationContext) }
 
@@ -283,4 +283,3 @@ private fun MainNavigation(
         }
     }
 }
-

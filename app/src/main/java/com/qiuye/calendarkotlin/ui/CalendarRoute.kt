@@ -20,6 +20,7 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -254,6 +255,23 @@ private fun CalendarScreen(
     val handleToday = {
         onToday()
     }
+    val (themeIcon, themeDescription, nextThemeMode) = when (themeMode) {
+        ThemeMode.SYSTEM -> Triple(
+            Icons.Rounded.SettingsBrightness,
+            "当前跟随系统，切换到浅色模式",
+            ThemeMode.LIGHT,
+        )
+        ThemeMode.LIGHT -> Triple(
+            Icons.Rounded.LightMode,
+            "当前浅色模式，切换到深色模式",
+            ThemeMode.DARK,
+        )
+        ThemeMode.DARK -> Triple(
+            Icons.Rounded.DarkMode,
+            "当前深色模式，切换到跟随系统模式",
+            ThemeMode.SYSTEM,
+        )
+    }
 
     LaunchedEffect(uiState.currentMonth) {
         val targetPage = monthToPage(uiState.currentMonth)
@@ -342,15 +360,12 @@ private fun CalendarScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {
-                            val nextMode = if (isDark) ThemeMode.LIGHT else ThemeMode.DARK
-                            onThemeModeChange(nextMode)
-                        },
+                        onClick = { onThemeModeChange(nextThemeMode) },
                         modifier = Modifier.testTag("btn_theme_toggle"),
                     ) {
                         Icon(
-                            imageVector = if (isDark) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
-                            contentDescription = if (isDark) "切换到浅色模式" else "切换到深色模式"
+                            imageVector = themeIcon,
+                            contentDescription = themeDescription,
                         )
                     }
                     DateJumpButton(onDatePicked = onJumpToDate)
@@ -632,4 +647,3 @@ private fun monthToPage(month: YearMonth): Int {
 }
 
 private fun pageToMonth(page: Int): YearMonth = pagerStartMonth.plusMonths(page.toLong())
-

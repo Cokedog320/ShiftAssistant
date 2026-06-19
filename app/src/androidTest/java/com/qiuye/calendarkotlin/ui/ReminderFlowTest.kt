@@ -42,6 +42,7 @@ class ReminderFlowTest {
 
         // Click Add
         composeTestRule.onNodeWithContentDescription("添加提醒").performClick()
+        composeTestRule.waitUntil(timeoutMillis = 5_000) { addClicked }
         assertTrue(addClicked)
 
         // Click Delete
