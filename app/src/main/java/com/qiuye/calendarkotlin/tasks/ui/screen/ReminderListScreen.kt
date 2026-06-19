@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.tasks.ui.screen
+package com.qiuye.calendarkotlin.tasks.ui.screen
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -68,9 +68,9 @@ import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.formatDate
 import com.qiuye.calendarkotlin.tasks.data.formatTime
 import com.qiuye.calendarkotlin.tasks.ui.theme.AutumnGradient
+import com.qiuye.calendarkotlin.ui.darkSeasonBackground
 import com.qiuye.calendarkotlin.tasks.ui.theme.LargeCardShape
 import com.qiuye.calendarkotlin.tasks.ui.theme.PrimaryAccent
-import com.qiuye.calendarkotlin.tasks.ui.theme.TasksTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -84,14 +84,15 @@ fun ReminderListScreen(
     onOpenReminder: (Long) -> Unit,
     onToggleReminderCompleted: suspend (Long, Boolean) -> Unit,
     onDeleteReminder: suspend (Long) -> Unit,
-    onNavigateBack: () -> Unit = {} // Added for integration
+    onNavigateBack: () -> Unit = {},
+    isDark: Boolean = false
 ) {
     val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(AutumnGradient))
+            .background(Brush.verticalGradient(if (isDark) darkSeasonBackground else AutumnGradient))
     ) {
         Column(
             modifier = Modifier
@@ -105,7 +106,7 @@ fun ReminderListScreen(
                     text = "任务提醒",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF333333),
+                    color = if (isDark) Color.White else Color(0xFF333333),
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(onClick = onNavigateBack) {
@@ -130,10 +131,10 @@ fun ReminderListScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (!hasNotificationPermission) {
-                        PermissionBanner(onRequestNotificationPermission)
+                        PermissionBanner(onRequestNotificationPermission, isDark)
                     }
                     if (!hasExactAlarmPermission) {
-                        ExactAlarmBanner(onRequestExactAlarmPermission)
+                        ExactAlarmBanner(onRequestExactAlarmPermission, isDark)
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -148,7 +149,7 @@ fun ReminderListScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    EmptyStateCard(onAddReminder = onAddReminder)
+                    EmptyStateCard(onAddReminder = onAddReminder, isDark = isDark)
                 }
             } else {
                 LazyColumn(
@@ -159,6 +160,7 @@ fun ReminderListScreen(
                     items(reminders, key = { it.id }) { reminder ->
                         ReminderCard(
                             reminder = reminder,
+                            isDark = isDark,
                             onClick = { onOpenReminder(reminder.id) },
                             onToggleCompleted = {
                                 scope.launch { onToggleReminderCompleted(reminder.id, !reminder.isCompleted) }
@@ -188,13 +190,13 @@ fun ReminderListScreen(
 }
 
 @Composable
-private fun PermissionBanner(onRequestNotificationPermission: () -> Unit) {
+private fun PermissionBanner(onRequestNotificationPermission: () -> Unit, isDark: Boolean = false) {
     Surface(
-        color = Color.White.copy(alpha = 0.9f),
+        color = if (isDark) Color(0xFF1E1E1E) else Color.White.copy(alpha = 0.9f),
         shape = LargeCardShape,
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, (if (isDark) Color(0xFF333333) else Color.White).copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -203,11 +205,11 @@ private fun PermissionBanner(onRequestNotificationPermission: () -> Unit) {
             Icon(Icons.Filled.NotificationsOff, contentDescription = null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("通知权限未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                Text("通知权限未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
                 Text(
                     text = "开启后才能在到点时发送提醒。",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isDark) Color.Gray else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             TextButton(
@@ -220,13 +222,13 @@ private fun PermissionBanner(onRequestNotificationPermission: () -> Unit) {
 }
 
 @Composable
-private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit) {
+private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit, isDark: Boolean = false) {
     Surface(
-        color = Color.White.copy(alpha = 0.9f),
+        color = if (isDark) Color(0xFF1E1E1E) else Color.White.copy(alpha = 0.9f),
         shape = LargeCardShape,
         tonalElevation = 2.dp,
         modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, (if (isDark) Color(0xFF333333) else Color.White).copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -235,11 +237,11 @@ private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit) {
             Icon(Icons.Filled.EventBusy, contentDescription = null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("精确提醒未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                Text("精确提醒未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
                 Text(
                     text = "建议开启以保证提醒不延迟。",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isDark) Color.Gray else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             TextButton(
@@ -252,7 +254,7 @@ private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit) {
 }
 
 @Composable
-private fun EmptyStateCard(onAddReminder: () -> Unit) {
+private fun EmptyStateCard(onAddReminder: () -> Unit, isDark: Boolean = false) {
     val infiniteTransition = rememberInfiniteTransition(label = "floating")
     val offsetY by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -295,7 +297,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
                 )
 
                 drawRoundRect(
-                    color = Color.White,
+                    color = if (isDark) Color.Gray else Color.White,
                     topLeft = Offset(calendarLeft, calendarTop),
                     size = Size(calendarWidth, calendarHeight),
                     cornerRadius = CornerRadius(24f, 24f),
@@ -312,14 +314,14 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
                 val ring1X = calendarLeft + calendarWidth * 0.25f
                 val ring2X = calendarLeft + calendarWidth * 0.75f
                 drawRoundRect(
-                    color = Color.White,
+                    color = if (isDark) Color.Gray else Color.White,
                     topLeft = Offset(ring1X - 8f, calendarTop - 15f),
                     size = Size(16f, 30f),
                     cornerRadius = CornerRadius(10f, 10f),
                     style = Stroke(width = 6f)
                 )
                 drawRoundRect(
-                    color = Color.White,
+                    color = if (isDark) Color.Gray else Color.White,
                     topLeft = Offset(ring2X - 8f, calendarTop - 15f),
                     size = Size(16f, 30f),
                     cornerRadius = CornerRadius(10f, 10f),
@@ -337,7 +339,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
                         cornerRadius = CornerRadius(6f, 6f)
                     )
                     drawRoundRect(
-                        color = Color(0xFFE8F0E8),
+                        color = if (isDark) Color(0xFF333333) else Color(0xFFE8F0E8),
                         topLeft = Offset(lineLeft + 35f, y + 8f),
                         size = Size(calendarWidth * 0.5f, 10f),
                         cornerRadius = CornerRadius(5f, 5f)
@@ -360,7 +362,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
 
                 val characterRadius = 55f
                 val charCenter = Offset(calendarLeft + calendarWidth * 0.85f, calendarTop + calendarHeight * 0.85f)
-                val charBodyColor = Color(0xFFF2EFE8)
+                val charBodyColor = if (isDark) Color(0xFF333333) else Color(0xFFF2EFE8)
                 
                 drawCircle(color = charBodyColor, radius = characterRadius, center = charCenter)
                 drawCircle(color = calColor, radius = characterRadius, center = charCenter, style = Stroke(width = 5f))
@@ -398,7 +400,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
             text = "还没有提醒",
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = Color(0xFF333333)
+            color = if (isDark) Color.White else Color(0xFF333333)
         )
         
         Spacer(modifier = Modifier.height(10.dp))
@@ -406,7 +408,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
         Text(
             text = "先创建一个单次提醒，\n到了时间手机会弹出通知。",
             fontSize = 16.sp,
-            color = Color.Gray.copy(alpha = 0.8f),
+            color = if (isDark) Color.Gray else Color.Gray.copy(alpha = 0.8f),
             textAlign = TextAlign.Center,
             lineHeight = 24.sp
         )
@@ -416,13 +418,19 @@ private fun EmptyStateCard(onAddReminder: () -> Unit) {
 @Composable
 private fun ReminderCard(
     reminder: ReminderEntity,
+    isDark: Boolean = false,
     onClick: () -> Unit,
     onToggleCompleted: () -> Unit,
     onDelete: () -> Unit
 ) {
     val isExpired = !reminder.isCompleted && reminder.scheduledAtMillis <= System.currentTimeMillis()
+    val targetVal = if (isDark) {
+        if (reminder.isCompleted) Color(0xFF1E1E1E).copy(alpha = 0.6f) else Color(0xFF1E1E1E)
+    } else {
+        if (reminder.isCompleted) Color.White.copy(alpha = 0.6f) else Color.White
+    }
     val backgroundColor = animateColorAsState(
-        targetValue = if (reminder.isCompleted) Color.White.copy(alpha = 0.6f) else Color.White,
+        targetValue = targetVal,
         label = "reminderCardColor"
     ).value
 
@@ -431,7 +439,7 @@ private fun ReminderCard(
         shape = LargeCardShape,
         shadowElevation = if (reminder.isCompleted) 0.dp else 10.dp,
         tonalElevation = 0.dp,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f)),
+        border = BorderStroke(1.dp, (if (isDark) Color(0xFF333333) else Color.White).copy(alpha = 0.8f)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
@@ -469,7 +477,7 @@ private fun ReminderCard(
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         fontWeight = if (reminder.isCompleted) FontWeight.Medium else FontWeight.Bold,
                         textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                        color = if (reminder.isCompleted) Color.Gray else Color(0xFF333333)
+                        color = if (reminder.isCompleted) Color.Gray else (if (isDark) Color.White else Color(0xFF333333))
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Surface(
@@ -502,7 +510,7 @@ private fun ReminderCard(
 @Preview(showBackground = true, device = "id:pixel_5")
 @Composable
 fun ReminderListScreenPreview() {
-    TasksTheme {
+    com.qiuye.calendarkotlin.ui.theme.CalendarKotlinTheme {
         ReminderListScreen(
             reminders = emptyList(),
             hasNotificationPermission = false,

@@ -235,7 +235,7 @@ fun NotesBottomSheet(
                     item {
                         Surface(
                             shape = RoundedCornerShape(24.dp),
-                            color = Color.White.copy(alpha = 0.72f),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Column(
@@ -320,7 +320,7 @@ private fun MemoStatCard(
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = Color.White.copy(alpha = 0.82f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
         modifier = Modifier.width(140.dp),
     ) {
         Column(
@@ -364,7 +364,7 @@ private fun NoteItemCard(
 
     Surface(
         shape = RoundedCornerShape(22.dp),
-        color = Color.White.copy(alpha = 0.9f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
         border = if (isSelected) BorderStroke(1.5.dp, accentColor) else null,
         modifier = Modifier
             .fillMaxWidth()

@@ -44,11 +44,12 @@ import java.time.LocalDate
 fun CalendarGrid(
     dayCells: List<DayCell>,
     seasonAccent: Color,
+    isDark: Boolean = false,
     onSelectDate: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        color = Color.White.copy(alpha = 0.86f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.86f),
         shape = RoundedCornerShape(32.dp),
         tonalElevation = 6.dp,
         modifier = modifier
@@ -82,6 +83,7 @@ fun CalendarGrid(
                             dayCell = dayCell,
                             accentColor = seasonAccent,
                             modifier = Modifier.weight(1f).fillMaxHeight(),
+                            isDark = isDark,
                             onClick = { onSelectDate(dayCell.date) },
                         )
                     }
@@ -95,10 +97,11 @@ fun CalendarGrid(
 private fun DayCellCard(
     dayCell: DayCell,
     accentColor: Color,
+    isDark: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val shiftPalette = dayCell.shift?.color?.palette()
+    val shiftPalette = dayCell.shift?.color?.palette(isDark = isDark)
     val isDoubleDigitDay = dayCell.date.dayOfMonth >= 10
     Surface(
         modifier = modifier
@@ -106,7 +109,7 @@ private fun DayCellCard(
             .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
             .alpha(if (dayCell.inCurrentMonth) 1f else 0.35f),
-        color = Color.White.copy(alpha = 0.95f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.95f),
         shape = RoundedCornerShape(20.dp),
         tonalElevation = if (dayCell.isSelected || dayCell.isToday) 4.dp else 0.dp,
     ) {
@@ -171,14 +174,22 @@ private fun DayCellCard(
                                 .align(Alignment.TopEnd)
                                 .clip(RoundedCornerShape(bottomStart = 8.dp, topEnd = 12.dp))
                                 .background(
-                                    if (dayCell.holiday.isWorkday) Color(0xFFE7EDF4) else Color(0xFFFFE2E2),
+                                    if (isDark) {
+                                        if (dayCell.holiday.isWorkday) Color(0xFF223042) else Color(0xFF3A1818)
+                                    } else {
+                                        if (dayCell.holiday.isWorkday) Color(0xFFE7EDF4) else Color(0xFFFFE2E2)
+                                    },
                                 )
                                 .padding(horizontal = 4.dp, vertical = 1.dp),
                         ) {
                             Text(
                                 text = dayCell.holiday.label,
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, lineHeight = 8.sp),
-                                color = if (dayCell.holiday.isWorkday) Color(0xFF526171) else Color(0xFFB42318),
+                                color = if (isDark) {
+                                    if (dayCell.holiday.isWorkday) Color(0xFFB8D4F0) else Color(0xFFFFB4B4)
+                                } else {
+                                    if (dayCell.holiday.isWorkday) Color(0xFF526171) else Color(0xFFB42318)
+                                },
                             )
                         }
                     }

@@ -66,6 +66,7 @@ import java.time.LocalDate
 fun DiaryEditScreen(
     dateKey: String,
     viewModel: DiaryViewModel,
+    isDark: Boolean = false,
     onNavigateBack: () -> Unit
 ) {
     val date = remember(dateKey) { LocalDate.parse(dateKey) }
@@ -89,11 +90,11 @@ fun DiaryEditScreen(
     val moodLabels = listOf("开心", "平静", "一般", "低落", "烦躁")
 
     // Theme Colors matching prototype
-    val bgGentle = Color(0xFFF4F7F6)
-    val accentGentle = Color(0xFF8EB6A8)
-    val accentGentleLight = Color(0xFFEBF2F0)
-    val textPrimary = Color(0xFF333333)
-    val textSecondary = Color(0xFF777777)
+    val bgGentle = if (isDark) Color(0xFF000000) else Color(0xFFF4F7F6)
+    val accentGentle = if (isDark) Color(0xFF5E8B7A) else Color(0xFF8EB6A8)
+    val accentGentleLight = if (isDark) Color(0xFF1B2F28) else Color(0xFFEBF2F0)
+    val textPrimary = if (isDark) Color(0xFFF3F3F3) else Color(0xFF333333)
+    val textSecondary = if (isDark) Color(0xFFB7B7B7) else Color(0xFF777777)
     val dangerColor = Color(0xFFFF6B6B)
 
     Scaffold(
@@ -128,7 +129,7 @@ fun DiaryEditScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .shadow(2.dp, CircleShape)
-                            .background(Color.White, CircleShape)
+                            .background(if (isDark) Color(0xFF1E1E1E) else Color.White, CircleShape)
                             .clickable { onNavigateBack() }
                             .testTag("btn_diary_back"),
                         contentAlignment = Alignment.Center
@@ -154,7 +155,7 @@ fun DiaryEditScreen(
                     Box(
                         modifier = Modifier
                             .shadow(2.dp, RoundedCornerShape(20.dp))
-                            .background(Color.White, RoundedCornerShape(20.dp))
+                            .background(if (isDark) Color(0xFF1E1E1E) else Color.White, RoundedCornerShape(20.dp))
                             .clickable {
                                 showDeleteDialog = true
                             }
@@ -179,7 +180,7 @@ fun DiaryEditScreen(
                     .weight(1f, fill = false)
                     .padding(horizontal = 20.dp)
                     .shadow(4.dp, RoundedCornerShape(24.dp)),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = if (isDark) Color(0xFF121212) else Color.White),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Column(
@@ -191,7 +192,7 @@ fun DiaryEditScreen(
                         text = "当前心情",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF999999),
+                        color = textSecondary,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -218,7 +219,7 @@ fun DiaryEditScreen(
                                     .then(
                                         if (isSelected) {
                                             Modifier.coloredShadow(
-                                                color = Color(0xFF8EB6A8),
+                                                color = accentGentle,
                                                 alpha = 0.25f,
                                                 borderRadius = 16.dp,
                                                 shadowRadius = 12.dp,
@@ -227,7 +228,7 @@ fun DiaryEditScreen(
                                         } else Modifier
                                     )
                                     .background(
-                                        if (isSelected) accentGentleLight else Color(0xFFF9FAFB),
+                                        if (isSelected) accentGentleLight else (if (isDark) Color(0xFF1E1E1E) else Color(0xFFF9FAFB)),
                                         RoundedCornerShape(16.dp)
                                     )
                                     .clip(RoundedCornerShape(16.dp))
@@ -253,7 +254,7 @@ fun DiaryEditScreen(
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    HorizontalDivider(color = Color(0xFFF0F0F0))
+                    HorizontalDivider(color = if (isDark) Color(0xFF333333) else Color(0xFFF0F0F0))
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Text Editor
@@ -263,7 +264,7 @@ fun DiaryEditScreen(
                         placeholder = {
                             Text(
                                 text = "在这里记录下今天的点滴...",
-                                color = Color(0xFFD0D0D0)
+                                color = if (isDark) Color(0xFF555555) else Color(0xFFD0D0D0)
                             )
                         },
                         modifier = Modifier

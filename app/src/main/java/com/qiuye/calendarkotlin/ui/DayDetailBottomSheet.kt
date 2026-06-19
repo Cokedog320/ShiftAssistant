@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 fun DayDetailBottomSheet(
     date: LocalDate,
     currentShift: ShiftDefinition?,
+    isDark: Boolean = false,
     note: String,
     pattern: List<ShiftDefinition>,
     overrideShift: ShiftDefinition?,
@@ -157,14 +158,14 @@ fun DayDetailBottomSheet(
                     OverrideChip(
                         label = shift.name,
                         selected = selectedOverride?.name == shift.name,
-                        palette = shift.color.palette(),
+                        palette = shift.color.palette(isDark = isDark),
                         onClick = { selectedOverride = shift },
                     )
                 }
                 OverrideChip(
                     label = vacationShift.name,
                     selected = selectedOverride?.id == vacationShift.id,
-                    palette = vacationShift.color.palette(),
+                    palette = vacationShift.color.palette(isDark = isDark),
                     onClick = { selectedOverride = vacationShift },
                 )
             }
@@ -329,5 +330,4 @@ private fun OverrideChip(
         ),
     )
 }
-
 

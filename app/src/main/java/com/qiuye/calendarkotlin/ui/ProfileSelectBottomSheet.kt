@@ -96,10 +96,10 @@ fun ProfileSelectBottomSheet(
                             onDismiss()
                         },
                         shape = RoundedCornerShape(16.dp),
-                        color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f) else Color.White,
+                        color = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f) else MaterialTheme.colorScheme.surface,
                         border = BorderStroke(
                             width = if (isActive) 2.dp else 1.dp,
-                            color = if (isActive) MaterialTheme.colorScheme.primary else Color(0xFFE5E5E5)
+                            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                         ),
                         modifier = Modifier.fillMaxWidth().testTag("profile_item_${profile.id}")
                     ) {
@@ -113,13 +113,15 @@ fun ProfileSelectBottomSheet(
                                     text = profile.name,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else Color.Black
+                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = patternSummary,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else Color.Gray,
+                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -142,7 +144,7 @@ fun ProfileSelectBottomSheet(
                                         Icon(
                                             imageVector = Icons.Rounded.Delete,
                                             contentDescription = "删除方案",
-                                            tint = if (isActive) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else Color.Gray,
+                                            tint = if (isActive) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }

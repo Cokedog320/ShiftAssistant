@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -56,12 +58,16 @@ import com.qiuye.calendarkotlin.model.CalendarData
 import com.qiuye.calendarkotlin.model.ShiftColorOption
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.model.defaultPattern
+import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomSheet(
     calendarData: CalendarData,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    isDark: Boolean,
     onDismiss: () -> Unit,
     onClearOverrides: () -> Unit,
     onSave: (String, String?, String?, List<ShiftDefinition>, Boolean) -> Unit,
@@ -98,7 +104,7 @@ fun SettingsBottomSheet(
             item {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color.White.copy(alpha = 0.74f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.74f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -122,12 +128,16 @@ fun SettingsBottomSheet(
                                 var showProfileListBottomSheet by remember { mutableStateOf(false) }
                                 Box {
                                     val defaultName = androidx.compose.ui.res.stringResource(com.qiuye.calendarkotlin.R.string.new_shift_profile)
-                                OutlinedButton(
+                                    OutlinedButton(
                                         onClick = { showProfileListBottomSheet = true },
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                        modifier = Modifier.testTag("btn_select_profile")
+                                        modifier = Modifier.widthIn(max = 180.dp).testTag("btn_select_profile")
                                     ) {
-                                        Text(calendarData.activeProfile.name)
+                                        Text(
+                                            text = calendarData.activeProfile.name,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                     }
 
                                     if (showProfileListBottomSheet) {
@@ -160,8 +170,8 @@ fun SettingsBottomSheet(
                                                                 onDismiss() // Close settings sheet instantly on switch
                                                             },
                                                             shape = RoundedCornerShape(12.dp),
-                                                            color = if (isActive) MaterialTheme.colorScheme.primaryContainer else Color.White,
-                                                            border = BorderStroke(1.dp, Color(0xFFE5E5E5)),
+                                                            color = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                                             modifier = Modifier.fillMaxWidth()
                                                         ) {
                                                             Row(
@@ -172,7 +182,10 @@ fun SettingsBottomSheet(
                                                                 Text(
                                                                     text = profile.name,
                                                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else Color.Black
+                                                                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else if (isDark) Color(0xFFE3E3E3) else Color.Black,
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis,
+                                                                    modifier = Modifier.weight(1f)
                                                                 )
                                                                 if (isActive) {
                                                                     Icon(
@@ -223,9 +236,15 @@ fun SettingsBottomSheet(
 
                         OutlinedTextField(
                             value = profileName,
-                            onValueChange = { profileName = it },
+                            onValueChange = { 
+                                if (it.length <= 16) {
+                                    profileName = it
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().testTag("field_profile_name"),
-                            label = { Text("方案名称") }
+                            label = { Text("方案名称") },
+                            singleLine = true,
+                            maxLines = 1
                         )
                     }
                 }
@@ -249,7 +268,46 @@ fun SettingsBottomSheet(
                 )
             }
             item {
-                Surface(shape = RoundedCornerShape(24.dp), color = Color.White.copy(alpha = 0.74f)) {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.74f),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = "主题模式",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            listOf(
+                                ThemeMode.SYSTEM to "跟随系统",
+                                ThemeMode.LIGHT to "浅色",
+                                ThemeMode.DARK to "深色",
+                            ).forEach { (mode, label) ->
+                                FilterChip(
+                                    selected = themeMode == mode,
+                                    onClick = { onThemeModeChange(mode) },
+                                    label = { Text(label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = if (isDark) Color(0xFF3A4458) else MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = if (isDark) Color(0xFFE8F0FF) else MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.74f)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -335,6 +393,7 @@ fun SettingsBottomSheet(
                 PatternEditorCard(
                     index = index,
                     shift = shift,
+                    isDark = isDark,
                     onUpdate = { updated -> pattern[index] = updated },
                     onRemove = {
                         if (pattern.size > 1) {
@@ -392,10 +451,11 @@ fun SettingsBottomSheet(
 private fun PatternEditorCard(
     index: Int,
     shift: ShiftDefinition,
+    isDark: Boolean = false,
     onUpdate: (ShiftDefinition) -> Unit,
     onRemove: () -> Unit,
 ) {
-    Surface(shape = RoundedCornerShape(24.dp), color = Color.White.copy(alpha = 0.74f)) {
+    Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.74f)) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -416,9 +476,15 @@ private fun PatternEditorCard(
             }
             OutlinedTextField(
                 value = shift.name,
-                onValueChange = { onUpdate(shift.copy(name = it)) },
+                onValueChange = { 
+                    if (it.length <= 8) {
+                        onUpdate(shift.copy(name = it))
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("班次名称") },
+                singleLine = true,
+                maxLines = 1
             )
             Text(
                 text = "颜色",
