@@ -4,6 +4,8 @@ import com.qiuye.calendarkotlin.BaseUnitTest
 import com.qiuye.calendarkotlin.model.CalendarData
 import com.qiuye.calendarkotlin.model.ShiftColorOption
 import com.qiuye.calendarkotlin.model.ShiftDefinition
+import com.qiuye.calendarkotlin.model.businessTripShift
+import com.qiuye.calendarkotlin.model.vacationShift
 import com.qiuye.calendarkotlin.model.defaultPattern
 import org.junit.Assert.*
 import org.junit.Test
@@ -116,16 +118,62 @@ class CalendarCalculatorTest : BaseUnitTest() {
     @Test
     fun `getDayCell should reflect override shift`() {
         val date = LocalDate.of(2024, 1, 2)
-        val override = ShiftDefinition("vacation", "休假", ShiftColorOption.GREEN)
         val data = CalendarData(
             cycleStartDate = "2024-01-01",
             pattern = defaultPattern,
-            overrides = mapOf("2024-01-02" to override),
+            overrides = mapOf("2024-01-02" to vacationShift),
             showLunar = false,
         )
 
         val cell = CalendarCalculator.getDayCell(date, data)
 
         assertEquals("休假", cell.shift!!.name)
+        assertEquals(ShiftColorOption.GREEN, cell.shift!!.color)
+    }
+
+    @Test
+    fun `businessTripShift constant should have correct id name and color`() {
+        assertEquals("business_trip", businessTripShift.id)
+        assertEquals("出差", businessTripShift.name)
+        assertEquals(ShiftColorOption.ORANGE, businessTripShift.color)
+    }
+
+    @Test
+    fun `getDayCell should reflect business trip override shift`() {
+        val date = LocalDate.of(2024, 1, 3)
+        val data = CalendarData(
+            cycleStartDate = "2024-01-01",
+            pattern = defaultPattern,
+            overrides = mapOf("2024-01-03" to businessTripShift),
+            showLunar = false,
+        )
+
+        val cell = CalendarCalculator.getDayCell(date, data)
+
+        assertEquals("出差", cell.shift!!.name)
+        assertEquals("business_trip", cell.shift!!.id)
+        assertEquals(ShiftColorOption.ORANGE, cell.shift!!.color)
+    }
+
+    @Test
+    fun `business trip override takes precedence over pattern shift`() {
+        val date = LocalDate.of(2024, 1, 1)
+        val dataWithoutOverride = CalendarData(
+            cycleStartDate = "2024-01-01",
+            pattern = defaultPattern,
+            showLunar = false,
+        )
+        val dataWithOverride = CalendarData(
+            cycleStartDate = "2024-01-01",
+            pattern = defaultPattern,
+            overrides = mapOf("2024-01-01" to businessTripShift),
+            showLunar = false,
+        )
+
+        val cellWithout = CalendarCalculator.getDayCell(date, dataWithoutOverride)
+        val cellWith = CalendarCalculator.getDayCell(date, dataWithOverride)
+
+        assertNotEquals("出差", cellWithout.shift!!.name)
+        assertEquals("出差", cellWith.shift!!.name)
     }
 }
