@@ -85,7 +85,6 @@ import com.qiuye.calendarkotlin.tasks.service.SaveReminderResult
 import com.qiuye.calendarkotlin.tasks.ui.theme.AutumnGradient
 import com.qiuye.calendarkotlin.tasks.ui.theme.LargeCardShape
 import com.qiuye.calendarkotlin.tasks.ui.theme.PrimaryAccent
-import com.qiuye.calendarkotlin.tasks.ui.theme.TasksTheme
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -113,7 +112,8 @@ fun EditTaskScreen(
     onNavigateBack: () -> Unit,
     onSave: suspend (Long?, String, Long, Int, Boolean) -> SaveReminderResult,
     onDelete: (suspend (Long) -> Unit)?,
-    onLoadReminder: suspend (Long) -> ReminderEntity?
+    onLoadReminder: suspend (Long) -> ReminderEntity?,
+    isDark: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -358,18 +358,19 @@ fun EditTaskScreen(
         containerColor = Color.Transparent,
         snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         topBar = {
+            val bgColor = if (isDark) Color(0xFF000000) else Color(0xFFF9F5EA)
             CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = if (reminderId == null) "新建提醒" else "编辑提醒",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = Color(0xFF333333)
+                        color = if (isDark) Color.White else Color(0xFF333333)
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.Black)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = if (isDark) Color.White else Color.Black)
                     }
                 },
                 actions = {
@@ -382,7 +383,7 @@ fun EditTaskScreen(
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (!pendingSave && parsedTitle.isNotBlank()) Color(0xFF5EBC83) else Color(0xFFE5E5E5))
+                            .background(if (!pendingSave && parsedTitle.isNotBlank()) Color(0xFF5EBC83) else if (isDark) Color(0xFF333333) else Color(0xFFE5E5E5))
                             .clickable(enabled = !pendingSave && parsedTitle.isNotBlank()) {
                                 scope.launch { performSave(allowPast = false) }
                             }
@@ -396,14 +397,15 @@ fun EditTaskScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFF9F5EA))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bgColor)
             )
         }
     ) { innerPadding ->
+        val bgColor = if (isDark) Color(0xFF000000) else Color(0xFFF9F5EA)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9F5EA))
+                .background(bgColor)
                 .padding(innerPadding)
                 .imePadding()
         ) {
@@ -416,16 +418,17 @@ fun EditTaskScreen(
             ) {
                 // 日期时间组合卡片
                 Surface(
-                    color = Color.White,
+                    color = if (isDark) Color(0xFF121212) else Color.White,
                     shape = RoundedCornerShape(12.dp),
                     shadowElevation = 1.dp,
-                    border = BorderStroke(1.dp, Color(0xFFE5E5E5).copy(alpha = 0.4f)),
+                    border = BorderStroke(1.dp, (if (isDark) Color(0xFF333333) else Color(0xFFE5E5E5)).copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column {
                         SettingRow(
                             label = "提醒日期",
                             value = formatDate(dateStartMillis),
+                            isDark = isDark,
                             onClick = { showDateDialog = true },
                             iconContent = {
                                 Icon(Icons.Rounded.DateRange, contentDescription = null, tint = Color(0xFF68B48B), modifier = Modifier.size(20.dp))
@@ -433,11 +436,12 @@ fun EditTaskScreen(
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
-                            color = Color(0xFFE5E5E5).copy(alpha = 0.4f)
+                            color = (if (isDark) Color(0xFF333333) else Color(0xFFE5E5E5)).copy(alpha = 0.4f)
                         )
                         SettingRow(
                             label = "提醒时间",
                             value = formatTime(combineDateAndMinutes(dateStartMillis, minutesOfDay)),
+                            isDark = isDark,
                             onClick = { showTimeDialog = true },
                             iconContent = {
                                 Icon(Icons.Rounded.Notifications, contentDescription = null, tint = Color(0xFF68B48B), modifier = Modifier.size(20.dp))
@@ -490,9 +494,9 @@ fun EditTaskScreen(
                 // 精确闹钟权限提示
                 if (!hasExactAlarmPermission) {
                     Surface(
-                        color = Color(0xFFFFF3E0),
+                        color = if (isDark) Color(0xFF3E2714) else Color(0xFFFFF3E0),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFFFCC02).copy(alpha = 0.4f)),
+                        border = BorderStroke(1.dp, (if (isDark) Color(0xFFE65100) else Color(0xFFFFCC02)).copy(alpha = 0.4f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -503,17 +507,17 @@ fun EditTaskScreen(
                             Icon(
                                 Icons.Rounded.Notifications,
                                 contentDescription = null,
-                                tint = Color(0xFFE65100),
+                                tint = if (isDark) Color(0xFFFFB74D) else Color(0xFFE65100),
                                 modifier = Modifier.size(22.dp)
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "精确闹钟权限未开启",
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFE65100))
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (isDark) Color(0xFFFFB74D) else Color(0xFFE65100))
                                 )
                                 Text(
                                     text = "提醒可能会延迟约1分钟。点击右侧按钮前往设置开启。",
-                                    style = TextStyle(fontSize = 12.sp, color = Color(0xFF795548))
+                                    style = TextStyle(fontSize = 12.sp, color = if (isDark) Color(0xFFD7CCC8) else Color(0xFF795548))
                                 )
                             }
                             Box(
@@ -531,10 +535,10 @@ fun EditTaskScreen(
 
                 // 任务内容卡片
                 Surface(
-                    color = Color.White,
+                    color = if (isDark) Color(0xFF121212) else Color.White,
                     shape = RoundedCornerShape(12.dp),
                     shadowElevation = 1.dp,
-                    border = BorderStroke(1.dp, Color(0xFFE5E5E5).copy(alpha = 0.4f)),
+                    border = BorderStroke(1.dp, (if (isDark) Color(0xFF333333) else Color(0xFFE5E5E5)).copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp)
                 ) {
                     Box(modifier = Modifier.padding(16.dp)) {
@@ -542,8 +546,10 @@ fun EditTaskScreen(
                             value = title,
                             onValueChange = { title = it },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp),
-                            placeholder = { Text("准备做什么？", color = Color(0xFF333333).copy(alpha = 0.4f), fontSize = 16.sp) },
+                            placeholder = { Text("准备做什么？", color = (if (isDark) Color.White else Color(0xFF333333)).copy(alpha = 0.4f), fontSize = 16.sp) },
                             colors = TextFieldDefaults.colors(
+                                focusedTextColor = if (isDark) Color.White else Color(0xFF333333),
+                                unfocusedTextColor = if (isDark) Color.White else Color(0xFF333333),
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 disabledContainerColor = Color.Transparent,
@@ -563,6 +569,7 @@ fun EditTaskScreen(
 private fun SettingRow(
     label: String,
     value: String,
+    isDark: Boolean = false,
     onClick: () -> Unit,
     iconContent: @Composable () -> Unit
 ) {
@@ -575,9 +582,9 @@ private fun SettingRow(
     ) {
         iconContent()
         Spacer(modifier = Modifier.width(12.dp))
-        Text(text = label, fontSize = 16.sp, color = Color(0xFF333333))
+        Text(text = label, fontSize = 16.sp, color = if (isDark) Color.White else Color(0xFF333333))
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = value, fontSize = 16.sp, color = Color(0xFF333333))
+        Text(text = value, fontSize = 16.sp, color = if (isDark) Color.White else Color(0xFF333333))
     }
 }
 

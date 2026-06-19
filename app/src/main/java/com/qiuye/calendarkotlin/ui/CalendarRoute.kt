@@ -18,11 +18,15 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.EditNote
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +55,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import java.io.BufferedReader
@@ -70,6 +75,7 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
 import com.qiuye.calendarkotlin.diary.ui.DiaryListBottomSheet
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.localDate
+import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 
 private val pagerStartMonth: YearMonth = YearMonth.of(1900, 1)
 private val pagerPageCount = (2100 - 1900) * 12
@@ -77,7 +83,10 @@ private val pagerPageCount = (2100 - 1900) * 12
 
 @Composable
 fun CalendarRoute(
-    viewModel: CalendarViewModel, 
+    viewModel: CalendarViewModel,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    isDark: Boolean,
     tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
     diaryViewModel: DiaryViewModel = viewModel(factory = DiaryViewModel.factory(LocalContext.current)),
     onNavigateToEditTask: (Long) -> Unit,
@@ -126,6 +135,9 @@ fun CalendarRoute(
         onCloseNotes = viewModel::closeNotes,
         onOpenRemindersCenter = viewModel::openReminders,
         onCloseRemindersCenter = viewModel::closeReminders,
+        themeMode = themeMode,
+        onThemeModeChange = onThemeModeChange,
+        isDark = isDark,
         onOpenDiaryList = viewModel::openDiaryList,
         onCloseDiaryList = viewModel::closeDiaryList,
         onOpenProfileSelect = viewModel::openProfileSelect,
@@ -196,6 +208,9 @@ private fun CalendarScreen(
     onCloseNotes: () -> Unit,
     onOpenRemindersCenter: () -> Unit,
     onCloseRemindersCenter: () -> Unit,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    isDark: Boolean,
     onOpenDiaryList: () -> Unit,
     onCloseDiaryList: () -> Unit,
     onOpenProfileSelect: () -> Unit,
@@ -221,7 +236,9 @@ private fun CalendarScreen(
     onExport: () -> Unit,
     onImport: () -> Unit,
 ) {
-    val palette = remember(uiState.currentMonth.monthValue) { seasonPaletteFor(uiState.currentMonth.monthValue) }
+    val palette = remember(uiState.currentMonth.monthValue, isDark) {
+        seasonPaletteFor(uiState.currentMonth.monthValue, isDark)
+    }
     val coroutineScope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -237,6 +254,23 @@ private fun CalendarScreen(
 
     val handleToday = {
         onToday()
+    }
+    val (themeIcon, themeDescription, nextThemeMode) = when (themeMode) {
+        ThemeMode.SYSTEM -> Triple(
+            Icons.Rounded.SettingsBrightness,
+            "当前跟随系统，切换到浅色模式",
+            ThemeMode.LIGHT,
+        )
+        ThemeMode.LIGHT -> Triple(
+            Icons.Rounded.LightMode,
+            "当前浅色模式，切换到深色模式",
+            ThemeMode.DARK,
+        )
+        ThemeMode.DARK -> Triple(
+            Icons.Rounded.DarkMode,
+            "当前深色模式，切换到跟随系统模式",
+            ThemeMode.SYSTEM,
+        )
     }
 
     LaunchedEffect(uiState.currentMonth) {
@@ -275,6 +309,9 @@ private fun CalendarScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 title = {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -292,6 +329,9 @@ private fun CalendarScreen(
                                 text = uiState.calendarData.activeProfile.name,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
                             Icon(
                                 imageVector = Icons.Rounded.KeyboardArrowDown,
@@ -319,6 +359,15 @@ private fun CalendarScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { onThemeModeChange(nextThemeMode) },
+                        modifier = Modifier.testTag("btn_theme_toggle"),
+                    ) {
+                        Icon(
+                            imageVector = themeIcon,
+                            contentDescription = themeDescription,
+                        )
+                    }
                     DateJumpButton(onDatePicked = onJumpToDate)
                     IconButton(
                         onClick = onOpenSettings,
@@ -332,7 +381,7 @@ private fun CalendarScreen(
         bottomBar = {
             val isCalendarActive = !uiState.isRemindersVisible && !uiState.isNotesVisible && !uiState.isDiaryListVisible
             NavigationBar(
-                containerColor = palette.background.last().copy(alpha = 0.95f),
+                containerColor = (if (isDark) darkSeasonBackground.last() else palette.background.last()).copy(alpha = 0.95f),
             ) {
                 NavigationBarItem(
                     selected = isCalendarActive,
@@ -411,7 +460,7 @@ private fun CalendarScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(palette.background))
+                .background(Brush.verticalGradient(if (isDark) darkSeasonBackground else palette.background))
                 .padding(innerPadding)
         ) {
             Column(
@@ -420,6 +469,7 @@ private fun CalendarScreen(
                 MonthHeader(
                     month = uiState.currentMonth,
                     accentColor = palette.accent,
+                    isDark = isDark,
                     onPreviousMonth = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage((pagerState.currentPage - 1).coerceAtLeast(0))
@@ -464,6 +514,7 @@ private fun CalendarScreen(
                         CalendarGrid(
                             dayCells = dayCells,
                             seasonAccent = palette.accent,
+                            isDark = isDark,
                             onSelectDate = onSelectDate,
                         )
                     }
@@ -474,6 +525,9 @@ private fun CalendarScreen(
             if (uiState.isSettingsVisible) {
                 SettingsBottomSheet(
                     calendarData = uiState.calendarData,
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    isDark = isDark,
                     onDismiss = onCloseSettings,
                     onClearOverrides = onClearOverrides,
                     onSave = onSaveSettings,
@@ -508,6 +562,7 @@ private fun CalendarScreen(
             } else if (uiState.isRemindersVisible) {
                 RemindersBottomSheet(
                     reminders = reminders,
+                    isDark = isDark,
                     onDismiss = onCloseRemindersCenter,
                     onToggleReminder = onToggleTask,
                     onDeleteReminder = onDeleteTask,
@@ -542,6 +597,7 @@ private fun CalendarScreen(
                     DayDetailBottomSheet(
                         date = selected,
                         currentShift = CalendarCalculator.getShiftForDate(selected, uiState.calendarData),
+                        isDark = isDark,
                         note = uiState.calendarData.notes[selected.toString()].orEmpty(),
                         pattern = uiState.calendarData.pattern,
                         overrideShift = uiState.calendarData.overrides[selected.toString()],
@@ -591,5 +647,3 @@ private fun monthToPage(month: YearMonth): Int {
 }
 
 private fun pageToMonth(page: Int): YearMonth = pagerStartMonth.plusMonths(page.toLong())
-
-

@@ -3,11 +3,13 @@ package com.qiuye.calendarkotlin
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,6 +32,10 @@ import androidx.navigation.navArgument
 import com.qiuye.calendarkotlin.domain.ChineseCalendarInfo
 import com.qiuye.calendarkotlin.ui.CalendarRoute
 import com.qiuye.calendarkotlin.ui.theme.CalendarKotlinTheme
+import com.qiuye.calendarkotlin.ui.theme.ThemeMode
+import com.qiuye.calendarkotlin.ui.theme.ThemePreferences
+import com.qiuye.calendarkotlin.ui.theme.resolve
+import kotlinx.coroutines.launch
 import com.qiuye.calendarkotlin.viewmodel.CalendarViewModel
 import com.qiuye.calendarkotlin.tasks.TasksGraph
 import com.qiuye.calendarkotlin.tasks.notification.ReminderNotifier
@@ -41,9 +48,10 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryEditScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MainActivity : ComponentActivity() {
+public class MainActivity : ComponentActivity() {
     private val openReminderIdFlow = MutableStateFlow<Long?>(null)
-    
+    private val themePreferences by lazy { ThemePreferences(applicationContext) }
+
     private val calendarViewModel by viewModels<CalendarViewModel> {
         CalendarViewModel.factory(applicationContext)
     }
@@ -54,24 +62,34 @@ class MainActivity : ComponentActivity() {
         TasksGraph.initialize(applicationContext)
         
         enableEdgeToEdge(
-            statusBarStyle = androidx.activity.SystemBarStyle.light(
+            statusBarStyle = SystemBarStyle.auto(
                 android.graphics.Color.TRANSPARENT,
-                android.graphics.Color.TRANSPARENT
+                android.graphics.Color.TRANSPARENT,
             ),
-            navigationBarStyle = androidx.activity.SystemBarStyle.light(
+            navigationBarStyle = SystemBarStyle.auto(
                 android.graphics.Color.TRANSPARENT,
-                android.graphics.Color.TRANSPARENT
-            )
+                android.graphics.Color.TRANSPARENT,
+            ),
         )
-        
+
         handleOpenReminderIntent(intent)
-        
+
         setContent {
-            CalendarKotlinTheme {
+            val themeMode by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val isDark = themeMode.resolve(isSystemInDarkTheme())
+
+            CalendarKotlinTheme(darkTheme = isDark) {
                 MainNavigation(
                     calendarViewModel = calendarViewModel,
                     openReminderIdFlow = openReminderIdFlow.asStateFlow(),
-                    onConsumeOpenReminder = { openReminderIdFlow.value = null }
+                    onConsumeOpenReminder = { openReminderIdFlow.value = null },
+                    themeMode = themeMode,
+                    onThemeModeChange = { mode ->
+                        lifecycleScope.launch {
+                            themePreferences.setThemeMode(mode)
+                        }
+                    },
+                    isDark = isDark,
                 )
             }
         }
@@ -94,7 +112,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainNavigation(
     calendarViewModel: CalendarViewModel,
-tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    isDark: Boolean,
+    tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
     diaryViewModel: DiaryViewModel = viewModel(factory = DiaryViewModel.factory(LocalContext.current)),
     openReminderIdFlow: kotlinx.coroutines.flow.StateFlow<Long?>,
     onConsumeOpenReminder: () -> Unit
@@ -154,6 +175,9 @@ tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(Loca
                 viewModel = calendarViewModel,
                 tasksViewModel = tasksViewModel,
                 diaryViewModel = diaryViewModel,
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange,
+                isDark = isDark,
                 onNavigateToEditTask = { reminderId ->
                     navController.navigate(ReminderRoutes.edit(reminderId))
                 },
@@ -180,6 +204,7 @@ tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(Loca
             EditTaskScreen(
                 reminderId = null,
                 initialDateMillis = if (dateMillis > 0L) dateMillis else null,
+                isDark = isDark,
                 hasNotificationPermission = hasNotificationPermission,
                 hasExactAlarmPermission = hasExactAlarmPermission,
                 onRequestNotificationPermission = {
@@ -212,6 +237,7 @@ tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(Loca
             val reminderId = backStackEntry.arguments?.getLong(ReminderRoutes.REMINDER_ID_ARG)
             EditTaskScreen(
                 reminderId = reminderId,
+                isDark = isDark,
                 hasNotificationPermission = hasNotificationPermission,
                 hasExactAlarmPermission = hasExactAlarmPermission,
                 onRequestNotificationPermission = {
@@ -249,6 +275,7 @@ tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(Loca
             DiaryEditScreen(
                 dateKey = dateKey,
                 viewModel = diaryViewModel,
+                isDark = isDark,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
@@ -256,4 +283,3 @@ tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(Loca
         }
     }
 }
-

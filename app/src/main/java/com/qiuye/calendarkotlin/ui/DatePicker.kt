@@ -188,7 +188,7 @@ private fun ChineseDatePickerBottomSheet(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(32.dp),
-                color = Color.White.copy(alpha = 0.9f),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
             ) {
                 Row(
                     modifier = Modifier

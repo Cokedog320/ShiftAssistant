@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
@@ -93,7 +94,14 @@ class CalendarUiTest {
         rule.onNodeWithTag("day_cell_$targetDate").performClick()
         rule.waitForIdle()
 
-        assertTrue(rule.onAllNodesWithTag("sheet_day_detail").fetchSemanticsNodes().isEmpty())
+        // Keep this test independent from previously persisted note/reminder state.
+        if (rule.onAllNodesWithTag("sheet_day_detail").fetchSemanticsNodes().isNotEmpty()) {
+            rule.onNodeWithContentDescription("关闭").performClick()
+            rule.waitUntil(timeoutMillis = 5_000) {
+                rule.onAllNodesWithTag("sheet_day_detail").fetchSemanticsNodes().isEmpty()
+            }
+        }
+
         rule.onNodeWithTag("btn_day_detail").performClick()
         rule.waitForIdle()
 
@@ -297,5 +305,4 @@ class CalendarUiTest {
         rule.onNodeWithTag("diary_item_$today").assertDoesNotExist()
     }
 }
-
 

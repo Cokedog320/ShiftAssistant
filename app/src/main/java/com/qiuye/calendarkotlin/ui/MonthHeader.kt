@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.ui
+package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +29,7 @@ import java.time.YearMonth
 fun MonthHeader(
     month: YearMonth,
     accentColor: Color,
+    isDark: Boolean = false,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
     onToday: () -> Unit,
@@ -36,7 +37,7 @@ fun MonthHeader(
     isDayDetailEnabled: Boolean,
 ) {
     Surface(
-        color = Color.White.copy(alpha = 0.8f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.8f),
         shape = RoundedCornerShape(28.dp),
         tonalElevation = 4.dp,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

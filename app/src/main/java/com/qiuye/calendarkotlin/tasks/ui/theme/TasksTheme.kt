@@ -1,10 +1,6 @@
 ﻿package com.qiuye.calendarkotlin.tasks.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -38,30 +34,4 @@ val LargeCardShape = RoundedCornerShape(34.dp)
 val MediumCardShape = RoundedCornerShape(26.dp)
 val InputFieldShape = RoundedCornerShape(18.dp)
 val PillShape = RoundedCornerShape(999.dp)
-
-private val LightColors = lightColorScheme(
-    primary = PrimaryAccent,
-    onPrimary = Color.White,
-    secondary = PrimaryAccentDark,
-    surface = CardSurface,
-    onSurface = TextPrimary,
-    surfaceVariant = Color(0xFFF1E8DB),
-    onSurfaceVariant = TextSecondary,
-    background = AppBackgroundTop,
-    onBackground = TextPrimary,
-    outline = BorderTone
-)
-
-@Composable
-fun TasksTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
-    val colorScheme = LightColors
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
-}
 

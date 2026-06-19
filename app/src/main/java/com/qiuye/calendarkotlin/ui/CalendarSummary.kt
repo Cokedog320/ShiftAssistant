@@ -1,4 +1,4 @@
-﻿package com.qiuye.calendarkotlin.ui
+package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import com.qiuye.calendarkotlin.viewmodel.CalendarUiState
 
 @Composable
-fun CalendarSummary(uiState: CalendarUiState, accentColor: Color) {
+fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolean = false) {
     Surface(
-        color = Color.White.copy(alpha = 0.75f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.75f),
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -55,7 +55,7 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 uiState.calendarData.pattern.forEach { shift ->
-                    val palette = shift.color.palette()
+                    val palette = shift.color.palette(isDark = isDark)
                     AssistChip(
                         onClick = {},
                         label = { Text(shift.name) },
@@ -75,16 +75,16 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color) {
                     onClick = {},
                     label = { Text("休: 法定放假") },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = Color(0xFFFFE2E2),
-                        labelColor = Color(0xFFB42318),
+                        containerColor = if (isDark) Color(0xFF3A1818) else Color(0xFFFFE2E2),
+                        labelColor = if (isDark) Color(0xFFFFB4B4) else Color(0xFFB42318),
                     ),
                 )
                 AssistChip(
                     onClick = {},
                     label = { Text("班: 调休上班") },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = Color(0xFFE7EDF4),
-                        labelColor = Color(0xFF526171),
+                        containerColor = if (isDark) Color(0xFF223042) else Color(0xFFE7EDF4),
+                        labelColor = if (isDark) Color(0xFFB8D4F0) else Color(0xFF526171),
                     ),
                 )
             }

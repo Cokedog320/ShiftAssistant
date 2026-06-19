@@ -84,6 +84,7 @@ private fun ReminderScope.label(): String =
 @Composable
 fun RemindersBottomSheet(
     reminders: List<ReminderEntity>,
+    isDark: Boolean = false,
     onDismiss: () -> Unit,
     onToggleReminder: (ReminderEntity) -> Unit,
     onDeleteReminder: (ReminderEntity) -> Unit,
@@ -282,7 +283,7 @@ fun RemindersBottomSheet(
                 item {
                     Surface(
                         shape = RoundedCornerShape(24.dp),
-                        color = Color.White.copy(alpha = 0.72f),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(
@@ -307,6 +308,7 @@ fun RemindersBottomSheet(
                 items(filteredReminders, key = { it.id }) { reminder ->
                     ReminderItemCard(
                         reminder = reminder,
+                        isDark = isDark,
                         onClick = {
                             coroutineScope.launch {
                                 sheetState.hide()
@@ -338,7 +340,7 @@ private fun ReminderStatCard(
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = Color.White.copy(alpha = 0.82f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
         modifier = Modifier.width(140.dp),
     ) {
         Column(
@@ -364,6 +366,7 @@ private fun ReminderStatCard(
 @Composable
 private fun ReminderItemCard(
     reminder: ReminderEntity,
+    isDark: Boolean,
     onClick: () -> Unit,
     onToggleCompleted: () -> Unit,
     onDelete: () -> Unit,
@@ -371,8 +374,10 @@ private fun ReminderItemCard(
 ) {
     val now = remember { System.currentTimeMillis() }
     val isExpired = !reminder.isCompleted && reminder.scheduledAtMillis <= now
+    val baseColor = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val targetCardColor = if (reminder.isCompleted) baseColor.copy(alpha = 0.6f) else baseColor
     val backgroundColor = androidx.compose.animation.animateColorAsState(
-        targetValue = if (reminder.isCompleted) Color.White.copy(alpha = 0.6f) else Color.White,
+        targetValue = targetCardColor,
         label = "reminderCardColor"
     ).value
 
@@ -424,7 +429,11 @@ private fun ReminderItemCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = if (reminder.isCompleted) FontWeight.Medium else FontWeight.Bold,
                         textDecoration = if (reminder.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                        color = if (reminder.isCompleted) Color.Gray else Color(0xFF333333),
+                        color = if (reminder.isCompleted) {
+                            Color.Gray
+                        } else {
+                            if (isDark) Color(0xFFE3E3E3) else Color(0xFF333333)
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -436,7 +445,11 @@ private fun ReminderItemCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Surface(
-                            color = if (isExpired && !reminder.isCompleted) Color(0xFFFFEBEE) else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                            color = if (isExpired && !reminder.isCompleted) {
+                                if (isDark) Color(0xFF3A1818) else Color(0xFFFFEBEE)
+                            } else {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                            },
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
@@ -444,7 +457,11 @@ private fun ReminderItemCard(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (isExpired && !reminder.isCompleted) Color(0xFFD32F2F) else MaterialTheme.colorScheme.primary
+                                color = if (isExpired && !reminder.isCompleted) {
+                                    if (isDark) Color(0xFFFFB4B4) else Color(0xFFD32F2F)
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
                             )
                         }
                         
