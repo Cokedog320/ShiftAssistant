@@ -278,6 +278,7 @@ private fun ShiftDefinition.monthGridLabel(): String = when (name) {
     "夜班" -> "夜"
     "休息" -> "休"
     "休假" -> "假"
+    "出差" -> "差"
     else -> name.take(2)
 }
 

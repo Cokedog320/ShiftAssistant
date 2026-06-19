@@ -105,4 +105,10 @@ val vacationShift = ShiftDefinition(
     color = ShiftColorOption.GREEN,
 )
 
+val businessTripShift = ShiftDefinition(
+    id = "business_trip",
+    name = "出差",
+    color = ShiftColorOption.ORANGE,
+)
+
 
