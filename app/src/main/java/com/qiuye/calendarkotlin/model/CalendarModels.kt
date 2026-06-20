@@ -108,7 +108,7 @@ val defaultPattern: List<ShiftDefinition> = listOf(
 val vacationShift = ShiftDefinition(
     id = "vacation",
     name = "休假",
-    color = ShiftColorOption.GREEN,
+    color = ShiftColorOption.PINK,
 )
 
 val businessTripShift = ShiftDefinition(

@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.model.ShiftDefinition
+import com.qiuye.calendarkotlin.model.businessTripShift
 import com.qiuye.calendarkotlin.model.vacationShift
 import java.time.LocalDate
 import androidx.compose.material3.Card
@@ -172,6 +173,12 @@ fun DayDetailBottomSheet(
                     selected = selectedOverride?.id == vacationShift.id,
                     palette = vacationShift.color.palette(isDark = isDark),
                     onClick = { selectedOverride = vacationShift },
+                )
+                OverrideChip(
+                    label = businessTripShift.displayName(),
+                    selected = selectedOverride?.id == businessTripShift.id,
+                    palette = businessTripShift.color.palette(isDark = isDark),
+                    onClick = { selectedOverride = businessTripShift },
                 )
             }
 

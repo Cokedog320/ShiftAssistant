@@ -10,6 +10,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.qiuye.calendarkotlin.model.CalendarData
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.model.ShiftProfile
+import com.qiuye.calendarkotlin.model.businessTripShift
+import com.qiuye.calendarkotlin.model.vacationShift
 import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -210,7 +212,7 @@ class CalendarRepository(
                         cycleStartDate = legacy.cycleStartDate,
                         cycleEndDate = legacy.cycleEndDate,
                         pattern = legacy.pattern.normalizeIdsByNameAndColor(),
-                        overrides = legacy.overrides
+                        overrides = legacy.overrides.normalizeBuiltinOverrideColors()
                     )
                 )
             }
@@ -240,7 +242,7 @@ class CalendarRepository(
                     cycleStartDate = cycleStartDate,
                     cycleEndDate = cycleEndDate,
                     pattern = pattern,
-                    overrides = overrides
+                    overrides = overrides.normalizeBuiltinOverrideColors()
                 )
             )
         }
@@ -280,6 +282,15 @@ class CalendarRepository(
             if (normalizedId == shift.id) shift else shift.copy(id = normalizedId)
         }
     }
+
+    private fun Map<String, ShiftDefinition>.normalizeBuiltinOverrideColors(): Map<String, ShiftDefinition> =
+        mapValues { (_, shift) ->
+            when (shift.id) {
+                vacationShift.id -> shift.copy(color = vacationShift.color)
+                businessTripShift.id -> shift.copy(color = businessTripShift.color)
+                else -> shift
+            }
+        }
 }
 
 @Serializable

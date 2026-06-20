@@ -87,6 +87,7 @@ import com.qiuye.calendarkotlin.tasks.service.SaveReminderResult
 import com.qiuye.calendarkotlin.tasks.ui.theme.AutumnGradient
 import com.qiuye.calendarkotlin.tasks.ui.theme.LargeCardShape
 import com.qiuye.calendarkotlin.tasks.ui.theme.PrimaryAccent
+import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -471,6 +472,7 @@ fun EditTaskScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             val now = System.currentTimeMillis()
+                            val isEnglish = isEnglishAppLocale()
                             listOf(
                                 Triple(morningLabel, 9, 0),
                                 Triple(afternoonLabel, 13, 0),
@@ -480,11 +482,16 @@ fun EditTaskScreen(
                                 val presetMillis = combineDateAndMinutes(dateStartMillis, minutes)
                                 val isPast = presetMillis <= now
                                 val isSelected = minutesOfDay == minutes
+                                val chipText = if (isEnglish) {
+                                    String.format("%02d:%02d", h, m)
+                                } else {
+                                    "$label ${String.format("%02d:%02d", h, m)}"
+                                }
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = { minutesOfDay = minutes },
                                     enabled = !isPast,
-                                    label = { Text("$label ${String.format("%02d:%02d", h, m)}", style = MaterialTheme.typography.bodySmall) },
+                                    label = { Text(chipText, style = MaterialTheme.typography.bodySmall) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,

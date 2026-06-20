@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -53,7 +54,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 
-public class MainActivity : ComponentActivity() {
+public class MainActivity : AppCompatActivity() {
     private val openReminderIdFlow = MutableStateFlow<Long?>(null)
     private val themePreferences by lazy { ThemePreferences(applicationContext) }
     private val languagePreferences by lazy { LanguagePreferences(applicationContext) }
