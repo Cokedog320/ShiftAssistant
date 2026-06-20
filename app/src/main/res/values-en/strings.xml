@@ -1,0 +1,208 @@
+﻿<resources>
+    <string name="app_name">Shift Assistant</string>
+    <string name="import_failed_invalid_file">Import failed: file format is invalid or corrupted</string>
+    <string name="new_shift_profile">New Shift Profile</string>
+    <string name="default_profile_name">Default Profile</string>
+    <string name="imported_profile">Imported Profile</string>
+    <string name="app_title">Shift Assistant</string>
+    <string name="switch_profile">Switch Profile</string>
+    <string name="settings">Settings</string>
+    <string name="tab_calendar">Calendar</string>
+    <string name="tab_tasks">Tasks</string>
+    <string name="tab_task_reminders">Reminders</string>
+    <string name="tab_diary">Diary</string>
+    <string name="tab_notes">Notes</string>
+    <string name="channel_name_reminders">Reminders</string>
+    <string name="channel_description_reminders">Reminder notifications</string>
+
+    <!-- Shared UI actions -->
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="clear">Clear</string>
+    <string name="go_enable">Enable</string>
+    <string name="go_to_settings_text">Settings</string>
+    <string name="none">None</string>
+    <string name="all">All</string>
+    <string name="completed">Completed</string>
+    <string name="today">Today</string>
+    <string name="delete_confirm_title">Confirm Delete</string>
+    <string name="select_date">Select Date</string>
+    <string name="theme_follow_system">System</string>
+
+    <!-- EditTaskScreen -->
+    <string name="reminder_saved_success">Saved</string>
+    <string name="reminder_saved_past_no_alarm">Saved (time has passed, no alarm)</string>
+    <string name="reminder_save_warn_both_permissions">, but notifications and alarm are not enabled</string>
+    <string name="reminder_save_warn_notification">, but notification permission is not enabled</string>
+    <string name="reminder_save_warn_exact_alarm">, but exact alarm permission is not enabled</string>
+    <string name="select_time">Select Time</string>
+    <string name="continue_save">Save Anyway</string>
+    <string name="time_already_past">Time Has Passed</string>
+    <string name="past_time_confirm_message">No alarm will be set. Continue?</string>
+    <string name="delete_reminder_title">Delete Reminder</string>
+    <string name="delete_reminder_message">The system alarm will also be cancelled.</string>
+    <string name="new_reminder">New Reminder</string>
+    <string name="edit_reminder">Edit Reminder</string>
+    <string name="reminder_date">Reminder Date</string>
+    <string name="reminder_time_label">Reminder Time</string>
+    <string name="quick_shortcuts">Quick</string>
+    <string name="morning">Morning</string>
+    <string name="afternoon">Afternoon</string>
+    <string name="evening">Evening</string>
+    <string name="exact_alarm_not_granted">Exact Alarm Not Granted</string>
+    <string name="exact_alarm_delay_warning">Reminders may be delayed ~1 min. Tap the button to enable in settings.</string>
+    <string name="reminder_input_placeholder">What is the plan?</string>
+    <string name="reminder_title_required">Title cannot be empty</string>
+
+    <!-- ReminderListScreen -->
+    <string name="task_reminders_title">Reminders</string>
+    <string name="back_to_calendar">Back to Calendar</string>
+    <string name="lightweight_local_reminders">Local Reminders</string>
+    <string name="add_reminder">Add Reminder</string>
+    <string name="notification_not_granted">Notification Permission Not Granted</string>
+    <string name="notification_permission_desc">Enable to receive timely reminder notifications.</string>
+    <string name="exact_reminder_not_enabled">Exact Alarm Not Enabled</string>
+    <string name="exact_alarm_permission_desc">Recommended to avoid delayed reminders.</string>
+    <string name="no_reminders_yet">No Reminders Yet</string>
+    <string name="no_reminders_desc">Create a one-time reminder and get notified when the time comes.</string>
+
+    <!-- DatePicker -->
+    <string name="jump_to_date">Jump to Date</string>
+
+    <!-- MonthHeader -->
+    <string name="view_schedule_by_month">View monthly schedule</string>
+    <string name="edit_selected_date">Edit selected date</string>
+    <string name="prev_month">Previous month</string>
+    <string name="next_month">Next month</string>
+
+    <!-- CalendarSummary -->
+    <string name="current_rule">Current Rule</string>
+    <string name="start_date_label">Start: </string>
+    <string name="not_set">Not set</string>
+    <string name="end_date_separator"> · End: </string>
+    <string name="no_limit">No limit</string>
+    <string name="holiday_chip_label">Off: Public Holiday</string>
+    <string name="work_chip_label">Work: Makeup Day</string>
+    <string name="calendar_summary_stats">%1$d-day cycle · %2$d notes · %3$d overrides</string>
+
+    <!-- CalendarRoute theme toggle -->
+    <string name="theme_cd_system_to_light">System theme, tap to switch to light</string>
+    <string name="theme_cd_light_to_dark">Light mode, tap to switch to dark</string>
+    <string name="theme_cd_dark_to_system">Dark mode, tap to switch to system</string>
+
+    <!-- DayDetailBottomSheet -->
+    <string name="current_shift_display">Current: %s</string>
+    <string name="no_shift_assigned">No shift</string>
+    <string name="lunar_prefix">Lunar: </string>
+    <string name="manual_override">Override Shift</string>
+    <string name="follow_pattern">Follow Pattern</string>
+    <string name="duration_days_label">Duration (days)</string>
+    <string name="days_format">%d days</string>
+    <string name="view_details_cd">View details</string>
+    <string name="delete_task_cd">Delete task</string>
+    <string name="note_label">Note</string>
+    <string name="note_placeholder">Add notes, tasks, or handover info</string>
+
+    <!-- NotesBottomSheet -->
+    <string name="note_scope_this_month">This Month</string>
+    <string name="note_scope_recent_30_days">Last 30 Days</string>
+    <string name="notes_center">Notes</string>
+    <string name="notes_center_desc">Browse notes by month, time range, or keyword</string>
+    <string name="total_notes_stat">Total Notes</string>
+    <string name="current_results">Results</string>
+    <string name="this_month_notes">This Month</string>
+    <string name="latest_entry">Latest</string>
+    <string name="search_notes_label">Search Notes</string>
+    <string name="search_notes_placeholder">Keyword, date, or month</string>
+    <string name="all_months">All Months</string>
+    <string name="total_notes_count">%d notes</string>
+    <string name="no_notes_yet">No notes yet</string>
+    <string name="no_notes_matching">No matching notes</string>
+    <string name="no_notes_hint">Go to day details to add a note.</string>
+    <string name="no_notes_filter_hint">Try a different keyword, month, or time range.</string>
+    <string name="delete_note_confirm_message">Delete the note for %s?</string>
+    <string name="delete_note_cd">Delete note</string>
+    <string name="lunar_label_format">Lunar: %s</string>
+    <string name="reminder_count_format">⏰ %d</string>
+
+    <!-- ProfileSelectBottomSheet -->
+    <string name="select_shift_profile">Select Profile</string>
+    <string name="no_shift_rule">No shift rule set</string>
+    <string name="currently_active_cd">Currently active</string>
+    <string name="delete_profile_cd">Delete profile</string>
+    <string name="new_profile_name_format">New Profile %d</string>
+    <string name="add_profile">New Profile</string>
+    <string name="profile_settings">Profile Settings</string>
+
+    <!-- SettingsBottomSheet -->
+    <string name="schedule_settings">Schedule Settings</string>
+    <string name="shift_profile_section">Shift Profile</string>
+    <string name="new_profile_cd">New profile</string>
+    <string name="new_text">New</string>
+    <string name="delete_current_profile_cd">Delete current profile</string>
+    <string name="profile_name_label">Profile Name</string>
+    <string name="cycle_start_date">Cycle Start Date</string>
+    <string name="cycle_end_date">Cycle End Date</string>
+    <string name="theme_mode">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="language_label">Language</string>
+    <string name="language_chinese">Chinese</string>
+    <string name="show_lunar">Show Lunar Calendar</string>
+    <string name="show_lunar_desc">Show lunar dates, solar terms, and traditional holidays</string>
+    <string name="clear_all_overrides">Clear All Overrides</string>
+    <string name="data_management">Data</string>
+    <string name="export_backup">Export</string>
+    <string name="import_data">Import</string>
+    <string name="shift_pattern_section">Shift Pattern</string>
+    <string name="new_shift_default_name">New Shift</string>
+    <string name="add_day">Add Day</string>
+    <string name="day_number_format">Day %d</string>
+    <string name="shift_name_label">Shift Name</string>
+    <string name="color_label">Color</string>
+
+    <!-- DiaryListBottomSheet -->
+    <string name="diary_center">Diary</string>
+    <string name="diary_center_desc">Review and manage your diary entries</string>
+    <string name="write_diary">New Entry</string>
+    <string name="total_diary_count">Total Entries</string>
+    <string name="this_month_diary">This Month</string>
+    <string name="mood_records">With Mood</string>
+    <string name="current_filter">Filtered</string>
+    <string name="search_diary_label">Search Diary</string>
+    <string name="search_diary_placeholder">Search diary content</string>
+    <string name="no_diary_yet">No diary entries yet</string>
+    <string name="no_diary_matching">No matching entries</string>
+    <string name="no_diary_hint">Tap &quot;New Entry&quot; in day details to start writing.</string>
+    <string name="no_diary_filter_hint">Try a different search keyword.</string>
+
+    <!-- DiaryEditScreen -->
+    <string name="mood_label_happy">Happy</string>
+    <string name="mood_label_calm">Calm</string>
+    <string name="mood_label_normal">Neutral</string>
+    <string name="mood_label_sad">Sad</string>
+    <string name="mood_label_irritated">Stressed</string>
+    <string name="current_mood">Current Mood</string>
+    <string name="diary_placeholder">Record your day here...</string>
+    <string name="save_diary">Save</string>
+    <string name="delete_diary_confirm_message">This diary entry cannot be recovered. Delete it?</string>
+
+    <!-- RemindersBottomSheet -->
+    <string name="reminder_scope_pending">Pending</string>
+    <string name="reminder_scope_overdue">Overdue</string>
+    <string name="reminders_center">Reminders</string>
+    <string name="reminders_center_desc">Manage all reminders and tasks</string>
+    <string name="total_reminders_stat">Total</string>
+    <string name="search_reminders_label">Search Reminders</string>
+    <string name="search_reminders_placeholder">Title, note, or date keyword</string>
+    <string name="total_reminders_count">%d reminders</string>
+    <string name="no_reminders_empty">No reminders yet</string>
+    <string name="no_reminders_matching">No matching reminders</string>
+    <string name="no_reminders_hint">Tap the button in day details to create a reminder.</string>
+    <string name="no_reminders_filter_hint">Try a different keyword, month, or filter.</string>
+    <string name="view_date_cd">View Date</string>
+</resources>

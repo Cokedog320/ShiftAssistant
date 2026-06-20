@@ -55,10 +55,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.formatDate
 import com.qiuye.calendarkotlin.tasks.data.formatTime
@@ -71,14 +73,6 @@ private enum class ReminderScope {
     COMPLETED,
     OVERDUE,
 }
-
-private fun ReminderScope.label(): String =
-    when (this) {
-        ReminderScope.ALL -> "全部"
-        ReminderScope.PENDING -> "待完成"
-        ReminderScope.COMPLETED -> "已完成"
-        ReminderScope.OVERDUE -> "已过期"
-    }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -145,14 +139,14 @@ fun RemindersBottomSheet(
             .filter { !it.isCompleted && it.scheduledAtMillis > now }
             .minByOrNull { it.scheduledAtMillis }
     }
-    val upcomingText = remember(upcomingReminder) {
+    val noneText = stringResource(R.string.none)
+    val upcomingText = remember(upcomingReminder, noneText) {
         upcomingReminder?.let {
             val localDate = java.time.Instant.ofEpochMilli(it.scheduledAtMillis)
                 .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
                 .toLocalDate()
-            val monthAndDay = localDate.format(java.time.format.DateTimeFormatter.ofPattern("M月d日", java.util.Locale.CHINA))
-            "$monthAndDay ${formatTime(it.scheduledAtMillis)}"
-        } ?: "无"
+            "${formatDate(localDate.atStartOfDay(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider()).toInstant().toEpochMilli())} ${formatTime(it.scheduledAtMillis)}"
+        } ?: noneText
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -172,12 +166,12 @@ fun RemindersBottomSheet(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "提醒中心",
+                            text = stringResource(R.string.reminders_center),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "汇总并管理所有日程、待办和定时提醒事项",
+                            text = stringResource(R.string.reminders_center_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -195,10 +189,10 @@ fun RemindersBottomSheet(
                             },
                             modifier = Modifier.size(32.dp),
                         ) {
-                            Icon(Icons.Rounded.Add, contentDescription = "添加提醒", modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_reminder), modifier = Modifier.size(18.dp))
                         }
                         IconButton(onClick = onDismiss) {
-                            Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                            Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.close))
                         }
                     }
                 }
@@ -209,19 +203,19 @@ fun RemindersBottomSheet(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     ReminderStatCard(
-                        title = "总提醒数",
+                        title = stringResource(R.string.total_reminders_stat),
                         value = totalCount.toString(),
                     )
                     ReminderStatCard(
-                        title = "待完成",
+                        title = stringResource(R.string.reminder_scope_pending),
                         value = pendingCount.toString(),
                     )
                     ReminderStatCard(
-                        title = "已完成",
+                        title = stringResource(R.string.completed),
                         value = completedCount.toString(),
                     )
                     ReminderStatCard(
-                        title = "最近一条",
+                        title = stringResource(R.string.latest_entry),
                         value = upcomingText,
                     )
                 }
@@ -235,7 +229,14 @@ fun RemindersBottomSheet(
                         FilterChip(
                             selected = selectedScope == scope,
                             onClick = { selectedScope = scope },
-                            label = { Text(scope.label()) },
+                            label = {
+                                Text(when (scope) {
+                                    ReminderScope.ALL -> stringResource(R.string.all)
+                                    ReminderScope.PENDING -> stringResource(R.string.reminder_scope_pending)
+                                    ReminderScope.COMPLETED -> stringResource(R.string.completed)
+                                    ReminderScope.OVERDUE -> stringResource(R.string.reminder_scope_overdue)
+                                })
+                            },
                         )
                     }
                 }
@@ -248,8 +249,8 @@ fun RemindersBottomSheet(
                         .fillMaxWidth()
                         .testTag("input_reminders_search"),
                     leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                    label = { Text("搜索提醒") },
-                    placeholder = { Text("输入提醒标题、备注或日期关键词") },
+                    label = { Text(stringResource(R.string.search_reminders_label)) },
+                    placeholder = { Text(stringResource(R.string.search_reminders_placeholder)) },
                     singleLine = true,
                 )
             }
@@ -261,20 +262,20 @@ fun RemindersBottomSheet(
                     FilterChip(
                         selected = selectedMonth == null,
                         onClick = { selectedMonth = null },
-                        label = { Text("全部月份") },
+                        label = { Text(stringResource(R.string.all_months)) },
                     )
                     months.forEach { month ->
                         FilterChip(
                             selected = selectedMonth == month,
                             onClick = { selectedMonth = month },
-                            label = { Text(month.format(noteMonthFormatter)) },
+                            label = { Text(month.format(noteMonthFormatter())) },
                         )
                     }
                 }
             }
             item {
                 Text(
-                    text = "共 ${filteredReminders.size} 条提醒",
+                    text = stringResource(R.string.total_reminders_count, filteredReminders.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -292,12 +293,12 @@ fun RemindersBottomSheet(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                text = if (reminders.isEmpty()) "还没有任何提醒" else "没有符合条件的提醒",
+                                text = if (reminders.isEmpty()) stringResource(R.string.no_reminders_empty) else stringResource(R.string.no_reminders_matching),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = if (reminders.isEmpty()) "在主界面的具体日期详情中点击下方按钮创建提醒。" else "换个关键词、月份或筛选状态试试。",
+                                text = if (reminders.isEmpty()) stringResource(R.string.no_reminders_hint) else stringResource(R.string.no_reminders_filter_hint),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -406,7 +407,7 @@ private fun ReminderItemCard(
                     if (reminder.isCompleted) {
                         Icon(
                             imageVector = Icons.Filled.Check,
-                            contentDescription = "已完成",
+                            contentDescription = stringResource(R.string.completed),
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
@@ -467,7 +468,7 @@ private fun ReminderItemCard(
                         
                         AssistChip(
                             onClick = onJumpToDate,
-                            label = { Text("查看日期", style = MaterialTheme.typography.labelSmall) },
+                            label = { Text(stringResource(R.string.view_date_cd), style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.height(24.dp)
                         )
                     }
@@ -476,7 +477,7 @@ private fun ReminderItemCard(
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = "删除",
+                        contentDescription = stringResource(R.string.delete),
                         tint = Color.LightGray.copy(alpha = 0.8f),
                         modifier = Modifier.size(20.dp)
                     )

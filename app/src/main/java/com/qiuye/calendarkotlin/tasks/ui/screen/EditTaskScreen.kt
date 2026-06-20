@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import android.widget.Toast
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.combineDateAndMinutes
 import com.qiuye.calendarkotlin.tasks.data.formatDate
@@ -195,14 +197,14 @@ fun EditTaskScreen(
 
         when (val result = onSave(reminderId, title, dateStartMillis, minutesOfDay, allowPast)) {
             is SaveReminderResult.Success -> {
-                val baseMessage = if (result.scheduledAlarm) "保存成功" else "已保存（时间已过去，不会闹铃）"
+                val baseMessage = if (result.scheduledAlarm) context.getString(R.string.reminder_saved_success) else context.getString(R.string.reminder_saved_past_no_alarm)
                 val warning = if (result.needsNotificationWarning || result.needsExactAlarmWarning) {
                     if (result.needsNotificationWarning && result.needsExactAlarmWarning) {
-                        "，但通知和闹钟权限未开启"
+                        context.getString(R.string.reminder_save_warn_both_permissions)
                     } else if (result.needsNotificationWarning) {
-                        "，但通知权限未开启"
+                        context.getString(R.string.reminder_save_warn_notification)
                     } else {
-                        "，但精确闹钟权限未开启"
+                        context.getString(R.string.reminder_save_warn_exact_alarm)
                     }
                 } else ""
                 
@@ -243,12 +245,12 @@ fun EditTaskScreen(
                         showDateDialog = false
                     }
                 ) {
-                    Text("确定")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDateDialog = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -257,7 +259,7 @@ fun EditTaskScreen(
                 dateFormatter = datePickerFormatter,
                 title = {
                     Text(
-                        text = "选择日期",
+                        text = stringResource(R.string.select_date),
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
                 },
@@ -288,15 +290,15 @@ fun EditTaskScreen(
                         showTimeDialog = false
                     }
                 ) {
-                    Text("确定")
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTimeDialog = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("选择时间") },
+            title = { Text(stringResource(R.string.select_time)) },
             text = { TimePicker(state = timePickerState) }
         )
     }
@@ -315,16 +317,16 @@ fun EditTaskScreen(
                         }
                     }
                 ) {
-                    Text("继续保存")
+                    Text(stringResource(R.string.continue_save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPastConfirm = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("时间已过去") },
-            text = { Text("保存后不会注册闹钟，是否继续？") }
+            title = { Text(stringResource(R.string.time_already_past)) },
+            text = { Text(stringResource(R.string.past_time_confirm_message)) }
         )
     }
 
@@ -341,16 +343,16 @@ fun EditTaskScreen(
                         }
                     }
                 ) {
-                    Text("删除")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("删除提醒") },
-            text = { Text("删除后会同时取消系统闹钟。") }
+            title = { Text(stringResource(R.string.delete_reminder_title)) },
+            text = { Text(stringResource(R.string.delete_reminder_message)) }
         )
     }
 
@@ -362,7 +364,7 @@ fun EditTaskScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = if (reminderId == null) "新建提醒" else "编辑提醒",
+                        text = if (reminderId == null) stringResource(R.string.new_reminder) else stringResource(R.string.edit_reminder),
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
                         color = if (isDark) Color.White else Color(0xFF333333)
@@ -370,13 +372,13 @@ fun EditTaskScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = if (isDark) Color.White else Color.Black)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = if (isDark) Color.White else Color.Black)
                     }
                 },
                 actions = {
                     if (reminderId != null) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color(0xFFD32F2F))
+                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = Color(0xFFD32F2F))
                         }
                     }
                     Box(
@@ -390,7 +392,7 @@ fun EditTaskScreen(
                             .padding(horizontal = 16.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            "保存", 
+                            stringResource(R.string.save),
                             fontWeight = FontWeight.Medium, 
                             fontSize = 14.sp,
                             color = Color.White
@@ -416,6 +418,10 @@ fun EditTaskScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val morningLabel = stringResource(R.string.morning)
+                val afternoonLabel = stringResource(R.string.afternoon)
+                val eveningLabel = stringResource(R.string.evening)
+
                 // 日期时间组合卡片
                 Surface(
                     color = if (isDark) Color(0xFF121212) else Color.White,
@@ -426,7 +432,7 @@ fun EditTaskScreen(
                 ) {
                     Column {
                         SettingRow(
-                            label = "提醒日期",
+                            label = stringResource(R.string.reminder_date),
                             value = formatDate(dateStartMillis),
                             isDark = isDark,
                             onClick = { showDateDialog = true },
@@ -439,7 +445,7 @@ fun EditTaskScreen(
                             color = (if (isDark) Color(0xFF333333) else Color(0xFFE5E5E5)).copy(alpha = 0.4f)
                         )
                         SettingRow(
-                            label = "提醒时间",
+                            label = stringResource(R.string.reminder_time_label),
                             value = formatTime(combineDateAndMinutes(dateStartMillis, minutesOfDay)),
                             isDark = isDark,
                             onClick = { showTimeDialog = true },
@@ -459,16 +465,16 @@ fun EditTaskScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "快捷",
+                                text = stringResource(R.string.quick_shortcuts),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             val now = System.currentTimeMillis()
                             listOf(
-                                Triple("早上", 9, 0),
-                                Triple("下午", 13, 0),
-                                Triple("晚上", 20, 0)
+                                Triple(morningLabel, 9, 0),
+                                Triple(afternoonLabel, 13, 0),
+                                Triple(eveningLabel, 20, 0)
                             ).forEach { (label, h, m) ->
                                 val minutes = h * 60 + m
                                 val presetMillis = combineDateAndMinutes(dateStartMillis, minutes)
@@ -512,11 +518,11 @@ fun EditTaskScreen(
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "精确闹钟权限未开启",
+                                    text = stringResource(R.string.exact_alarm_not_granted),
                                     style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = if (isDark) Color(0xFFFFB74D) else Color(0xFFE65100))
                                 )
                                 Text(
-                                    text = "提醒可能会延迟约1分钟。点击右侧按钮前往设置开启。",
+                                    text = stringResource(R.string.exact_alarm_delay_warning),
                                     style = TextStyle(fontSize = 12.sp, color = if (isDark) Color(0xFFD7CCC8) else Color(0xFF795548))
                                 )
                             }
@@ -527,7 +533,7 @@ fun EditTaskScreen(
                                     .clickable { onRequestExactAlarmPermission() }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                Text("去开启", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                                Text(stringResource(R.string.go_enable), fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -546,7 +552,7 @@ fun EditTaskScreen(
                             value = title,
                             onValueChange = { title = it },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp),
-                            placeholder = { Text("准备做什么？", color = (if (isDark) Color.White else Color(0xFF333333)).copy(alpha = 0.4f), fontSize = 16.sp) },
+                            placeholder = { Text(stringResource(R.string.reminder_input_placeholder), color = (if (isDark) Color.White else Color(0xFF333333)).copy(alpha = 0.4f), fontSize = 16.sp) },
                             colors = TextFieldDefaults.colors(
                                 focusedTextColor = if (isDark) Color.White else Color(0xFF333333),
                                 unfocusedTextColor = if (isDark) Color.White else Color(0xFF333333),
@@ -587,4 +593,3 @@ private fun SettingRow(
         Text(text = value, fontSize = 16.sp, color = if (isDark) Color.White else Color(0xFF333333))
     }
 }
-

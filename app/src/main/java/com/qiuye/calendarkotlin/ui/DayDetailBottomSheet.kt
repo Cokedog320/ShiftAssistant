@@ -49,8 +49,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.model.vacationShift
 import java.time.LocalDate
@@ -59,6 +61,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.TextButton
 import kotlinx.coroutines.launch
+import com.qiuye.calendarkotlin.domain.displayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -86,7 +89,9 @@ fun DayDetailBottomSheet(
     var selectedOverride by remember(date, overrideShift) { mutableStateOf(overrideShift) }
     var durationDays by remember(date) { mutableStateOf(1) }
 
-    val uniqueShifts = remember(pattern) { pattern.distinctBy { it.name } }
+    val uniqueShifts = remember(pattern) { pattern.distinctBy { it.id } }
+    val noShiftText = stringResource(R.string.no_shift_assigned)
+    val lunarPrefixStr = stringResource(R.string.lunar_prefix)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -106,12 +111,12 @@ fun DayDetailBottomSheet(
             ) {
                 Column {
                     Text(
-                        text = date.format(fullDateFormatter),
+                        text = date.format(fullDateFormatter()),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "当前显示：${currentShift?.name ?: "无排班"}",
+                        text = stringResource(R.string.current_shift_display, currentShift?.displayName() ?: noShiftText),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -119,7 +124,7 @@ fun DayDetailBottomSheet(
                         Text(
                             text = buildString {
                                 if (lunarFullText.isNotBlank()) {
-                                    append("农历 ")
+                                    append(lunarPrefixStr)
                                     append(lunarFullText)
                                 }
                                 if (holidayName != null) {
@@ -135,12 +140,12 @@ fun DayDetailBottomSheet(
                     }
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.close))
                 }
             }
 
             Text(
-                text = "手动改班",
+                text = stringResource(R.string.manual_override),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -149,21 +154,21 @@ fun DayDetailBottomSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OverrideChip(
-                    label = "跟随规律",
+                    label = stringResource(R.string.follow_pattern),
                     selected = selectedOverride == null,
                     palette = null,
                     onClick = { selectedOverride = null },
                 )
                 uniqueShifts.forEach { shift ->
                     OverrideChip(
-                        label = shift.name,
-                        selected = selectedOverride?.name == shift.name,
+                        label = shift.displayName(),
+                        selected = selectedOverride?.id == shift.id,
                         palette = shift.color.palette(isDark = isDark),
                         onClick = { selectedOverride = shift },
                     )
                 }
                 OverrideChip(
-                    label = vacationShift.name,
+                    label = vacationShift.displayName(),
                     selected = selectedOverride?.id == vacationShift.id,
                     palette = vacationShift.color.palette(isDark = isDark),
                     onClick = { selectedOverride = vacationShift },
@@ -178,7 +183,7 @@ fun DayDetailBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "持续天数",
+                    text = stringResource(R.string.duration_days_label),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -194,7 +199,7 @@ fun DayDetailBottomSheet(
                         Text("-", style = MaterialTheme.typography.titleMedium)
                     }
                     Text(
-                        text = "$durationDays 天",
+                        text = stringResource(R.string.days_format, durationDays),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 4.dp)
@@ -216,7 +221,7 @@ fun DayDetailBottomSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "任务提醒",
+                    text = stringResource(R.string.task_reminders_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -229,7 +234,7 @@ fun DayDetailBottomSheet(
                     },
                     modifier = Modifier.size(32.dp),
                 ) {
-                    Icon(Icons.Rounded.Add, contentDescription = "添加提醒", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_reminder), modifier = Modifier.size(18.dp))
                 }
             }
 
@@ -272,10 +277,10 @@ fun DayDetailBottomSheet(
                                 onOpenReminder(task)
                             }
                         }) {
-                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "查看详情", modifier = Modifier.size(20.dp))
+                            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = stringResource(R.string.view_details_cd), modifier = Modifier.size(20.dp))
                         }
                         IconButton(onClick = { onDeleteTask(task) }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "删除任务", modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.delete_task_cd), modifier = Modifier.size(20.dp))
                         }
                     }
                 }
@@ -290,8 +295,8 @@ fun DayDetailBottomSheet(
                     .height(160.dp)
                     .fillMaxWidth()
                     .testTag("input_day_note"),
-                label = { Text("备注") },
-                placeholder = { Text("添加备忘、待办事项或交接说明") },
+                label = { Text(stringResource(R.string.note_label)) },
+                placeholder = { Text(stringResource(R.string.note_placeholder)) },
             )
 
             Row(
@@ -299,14 +304,14 @@ fun DayDetailBottomSheet(
                 horizontalArrangement = Arrangement.End,
             ) {
                 OutlinedButton(onClick = onDismiss) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 FilledIconButton(
                     onClick = { onSave(draftNote, selectedOverride, durationDays) },
                     modifier = Modifier.testTag("btn_day_save"),
                 ) {
-                    Icon(Icons.Rounded.Check, contentDescription = "保存")
+                    Icon(Icons.Rounded.Check, contentDescription = stringResource(R.string.save))
                 }
             }
         }
@@ -330,4 +335,3 @@ private fun OverrideChip(
         ),
     )
 }
-

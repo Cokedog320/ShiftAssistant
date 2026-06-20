@@ -40,9 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.diary.data.DiaryEntity
 import com.qiuye.calendarkotlin.ui.fullDateFormatter
 import java.time.LocalDate
@@ -96,18 +98,18 @@ fun DiaryListBottomSheet(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "日记中心",
+                            text = stringResource(R.string.diary_center),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "回顾和管理您写下的生活点滴",
+                            text = stringResource(R.string.diary_center_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                        Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.close))
                     }
                 }
             }
@@ -133,7 +135,7 @@ fun DiaryListBottomSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "写日记",
+                        text = stringResource(R.string.write_diary),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -146,10 +148,10 @@ fun DiaryListBottomSheet(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    DiaryStatCard(title = "总日记数", value = totalCount.toString())
-                    DiaryStatCard(title = "本月记录", value = currentMonthCount.toString())
-                    DiaryStatCard(title = "心情记录", value = withMoodCount.toString())
-                    DiaryStatCard(title = "当前筛选", value = displayedEntries.size.toString())
+                    DiaryStatCard(title = stringResource(R.string.total_diary_count), value = totalCount.toString())
+                    DiaryStatCard(title = stringResource(R.string.this_month_diary), value = currentMonthCount.toString())
+                    DiaryStatCard(title = stringResource(R.string.mood_records), value = withMoodCount.toString())
+                    DiaryStatCard(title = stringResource(R.string.current_filter), value = displayedEntries.size.toString())
                 }
             }
 
@@ -165,12 +167,12 @@ fun DiaryListBottomSheet(
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { onSearchQueryChanged("") }) {
-                                Icon(Icons.Rounded.Clear, contentDescription = "清空")
+                                Icon(Icons.Rounded.Clear, contentDescription = stringResource(R.string.clear))
                             }
                         }
                     },
-                    label = { Text("搜索日记") },
-                    placeholder = { Text("输入日记正文关键词") },
+                    label = { Text(stringResource(R.string.search_diary_label)) },
+                    placeholder = { Text(stringResource(R.string.search_diary_placeholder)) },
                     singleLine = true,
                 )
             }
@@ -189,12 +191,12 @@ fun DiaryListBottomSheet(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                text = if (entries.isEmpty()) "还没有写过日记" else "没有找到符合条件的日记",
+                                text = if (entries.isEmpty()) stringResource(R.string.no_diary_yet) else stringResource(R.string.no_diary_matching),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = if (entries.isEmpty()) "点击主页日期详情中的“写日记”开始第一篇吧！" else "尝试换个关键词进行搜索。",
+                                text = if (entries.isEmpty()) stringResource(R.string.no_diary_hint) else stringResource(R.string.no_diary_filter_hint),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -272,7 +274,7 @@ private fun DiaryItemCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = date.format(fullDateFormatter),
+                        text = date.format(fullDateFormatter()),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                     )

@@ -42,6 +42,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.domain.parseStorageDateOrNull
 import java.time.LocalDate
 import java.time.YearMonth
@@ -59,13 +61,13 @@ fun DateJumpButton(
         onClick = { isPickerVisible = true },
         modifier = modifier.testTag("btn_date_jump"),
     ) {
-        Icon(Icons.Rounded.EditCalendar, contentDescription = "跳转日期")
+        Icon(Icons.Rounded.EditCalendar, contentDescription = stringResource(R.string.jump_to_date))
     }
 
     if (isPickerVisible) {
         ChineseDatePickerBottomSheet(
             initialDate = LocalDate.now(),
-            title = "跳转日期",
+            title = stringResource(R.string.jump_to_date),
             onDismiss = { isPickerVisible = false },
             onConfirm = { pickedDate ->
                 onDatePicked(pickedDate)
@@ -99,13 +101,13 @@ internal fun DatePickerField(
                     .weight(1f)
                     .thenTestTag(testTagPrefix?.let { "${it}_open" }),
             ) {
-                Text(if (value.isBlank()) "选择日期" else value)
+                Text(if (value.isBlank()) stringResource(R.string.select_date) else value)
             }
             OutlinedButton(
                 onClick = onClear,
                 modifier = Modifier.thenTestTag(testTagPrefix?.let { "${it}_clear" }),
             ) {
-                Text("清空")
+                Text(stringResource(R.string.clear))
             }
         }
     }
@@ -116,7 +118,7 @@ internal fun DatePickerField(
             title = label,
             onDismiss = { isPickerVisible = false },
             onConfirm = { pickedDate ->
-                onPick(pickedDate.format(shortDateFormatter))
+                onPick(pickedDate.format(shortDateFormatter()))
                 isPickerVisible = false
             },
         )
@@ -175,13 +177,13 @@ private fun ChineseDatePickerBottomSheet(
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = selectedDate.format(fullDateFormatter),
+                        text = selectedDate.format(fullDateFormatter()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.close))
                 }
             }
 
@@ -232,14 +234,14 @@ private fun ChineseDatePickerBottomSheet(
                 horizontalArrangement = Arrangement.End,
             ) {
                 OutlinedButton(onClick = onDismiss) {
-                    Text("取消")
+                    Text(stringResource(R.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 TextButton(
                     onClick = { onConfirm(selectedDate) },
                     modifier = Modifier.testTag("btn_date_confirm"),
                 ) {
-                    Text("确定", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.confirm), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -367,5 +369,3 @@ private fun chineseNumber(value: Int): String = when (value) {
     12 -> "十二"
     else -> value.toString()
 }
-
-

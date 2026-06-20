@@ -18,12 +18,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
+import com.qiuye.calendarkotlin.domain.displayName
 import com.qiuye.calendarkotlin.viewmodel.CalendarUiState
 
 @Composable
 fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolean = false) {
+    val startLabel = stringResource(R.string.start_date_label)
+    val notSetText = stringResource(R.string.not_set)
+    val endSeparator = stringResource(R.string.end_date_separator)
+    val noLimitText = stringResource(R.string.no_limit)
+
     Surface(
         color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.75f),
         shape = RoundedCornerShape(28.dp),
@@ -36,16 +44,16 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolea
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = "当前规则",
+                text = stringResource(R.string.current_rule),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = buildString {
-                    append("开始日期：")
-                    append(uiState.calendarData.cycleStartDate ?: "未设置")
-                    append(" · 结束日期：")
-                    append(uiState.calendarData.cycleEndDate ?: "不限")
+                    append(startLabel)
+                    append(uiState.calendarData.cycleStartDate ?: notSetText)
+                    append(endSeparator)
+                    append(uiState.calendarData.cycleEndDate ?: noLimitText)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -58,7 +66,7 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolea
                     val palette = shift.color.palette(isDark = isDark)
                     AssistChip(
                         onClick = {},
-                        label = { Text(shift.name) },
+                        label = { Text(shift.displayName()) },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = palette.container,
                             labelColor = palette.content,
@@ -73,7 +81,7 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolea
             ) {
                 AssistChip(
                     onClick = {},
-                    label = { Text("休: 法定放假") },
+                    label = { Text(stringResource(R.string.holiday_chip_label)) },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = if (isDark) Color(0xFF3A1818) else Color(0xFFFFE2E2),
                         labelColor = if (isDark) Color(0xFFFFB4B4) else Color(0xFFB42318),
@@ -81,7 +89,7 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolea
                 )
                 AssistChip(
                     onClick = {},
-                    label = { Text("班: 调休上班") },
+                    label = { Text(stringResource(R.string.work_chip_label)) },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = if (isDark) Color(0xFF223042) else Color(0xFFE7EDF4),
                         labelColor = if (isDark) Color(0xFFB8D4F0) else Color(0xFF526171),
@@ -89,12 +97,10 @@ fun CalendarSummary(uiState: CalendarUiState, accentColor: Color, isDark: Boolea
                 )
             }
             Text(
-                text = "${uiState.calendarData.pattern.size} 天一个循环，备注 ${uiState.calendarData.notes.size} 条，手动改班 ${uiState.calendarData.overrides.size} 天。",
+                text = stringResource(R.string.calendar_summary_stats, uiState.calendarData.pattern.size, uiState.calendarData.notes.size, uiState.calendarData.overrides.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = accentColor,
             )
         }
     }
 }
-
-

@@ -80,6 +80,7 @@ class CalendarViewModel internal constructor(
     private val repository: CalendarDataStore,
     private val reminderService: com.qiuye.calendarkotlin.tasks.service.ReminderService? = null,
     private val clock: java.time.Clock = java.time.Clock.systemDefaultZone(),
+    private val defaultProfileName: String = "Default",
 ) : ViewModel() {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -88,7 +89,9 @@ class CalendarViewModel internal constructor(
     private val currentMonth = MutableStateFlow(YearMonth.now(clock))
     private val selectedDate = MutableStateFlow<LocalDate?>(null)
     private val sheetState = MutableStateFlow(SheetState())
-    private val initialCalendarDataWithNotes = CalendarData().toCalendarDataWithNotes()
+    private val initialCalendarDataWithNotes = CalendarData(
+        profiles = listOf(ShiftProfile(id = "default", name = defaultProfileName)),
+    ).toCalendarDataWithNotes()
     private val calendarDataWithNotes: StateFlow<CalendarDataWithNotes> =
         repository.calendarData
             .map { data -> data.toCalendarDataWithNotes() }
@@ -518,6 +521,7 @@ class CalendarViewModel internal constructor(
                 CalendarViewModel(
                     repository = com.qiuye.calendarkotlin.tasks.TasksGraph.calendarRepository(appContext),
                     reminderService = com.qiuye.calendarkotlin.tasks.TasksGraph.reminderService(appContext),
+                    defaultProfileName = appContext.getString(R.string.default_profile_name),
                 )
             }
         }

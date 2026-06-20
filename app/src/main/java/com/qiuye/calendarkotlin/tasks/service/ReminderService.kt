@@ -6,6 +6,7 @@ import com.qiuye.calendarkotlin.tasks.data.ReminderRepository
 import com.qiuye.calendarkotlin.tasks.notification.ReminderNotifier
 import com.qiuye.calendarkotlin.tasks.scheduler.ReminderScheduler
 import com.qiuye.calendarkotlin.data.CalendarDataStore
+import com.qiuye.calendarkotlin.R
 import kotlinx.coroutines.flow.Flow
 import android.util.Log
 
@@ -51,7 +52,7 @@ class ReminderService(
         val trimmedNote = lines.drop(1).joinToString("\n").trim()
 
         if (trimmedTitle.isEmpty()) {
-            return SaveReminderResult.ValidationError("标题不能为空")
+            return SaveReminderResult.ValidationError(context.getString(R.string.reminder_title_required))
         }
 
         val now = System.currentTimeMillis()
@@ -197,5 +198,4 @@ suspend fun deleteReminder(reminderId: Long) {
         )
     }
 }
-
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.nlf.calendar.Solar
 import com.qiuye.calendarkotlin.model.HolidayMarker
+import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 import java.time.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -55,7 +56,12 @@ object ChineseCalendarInfo {
      */
     fun init(context: Context) {
         try {
-            val raw = context.assets.open("holidays.json").bufferedReader().use { it.readText() }
+            val assetName = if (isEnglishAppLocale()) {
+                "holidays_en.json"
+            } else {
+                "holidays.json"
+            }
+            val raw = context.assets.open(assetName).bufferedReader().use { it.readText() }
             val yearDataList = json.decodeFromString<List<YearHolidayData>>(raw)
 
             holidayPeriods = yearDataList.flatMap { yearData ->
@@ -79,6 +85,9 @@ object ChineseCalendarInfo {
     }
 
     fun getLunarDisplay(date: LocalDate): LunarDisplay {
+        if (isEnglishAppLocale()) {
+            return LunarDisplay(label = "", fullText = "")
+        }
         try {
             val solar = Solar.fromYmd(date.year, date.monthValue, date.dayOfMonth)
             val lunar = solar.lunar
@@ -117,6 +126,9 @@ object ChineseCalendarInfo {
     }
 
     fun getCleanLunarLabel(date: LocalDate): String {
+        if (isEnglishAppLocale()) {
+            return ""
+        }
         try {
             val solar = Solar.fromYmd(date.year, date.monthValue, date.dayOfMonth)
             val lunar = solar.lunar
@@ -145,10 +157,11 @@ object ChineseCalendarInfo {
     }
 
     fun getHolidayMarker(date: LocalDate): HolidayMarker? {
+        val isEnglish = isEnglishAppLocale()
         workdays[date]?.let { name ->
             return HolidayMarker(
                 name = name,
-                label = "班",
+                label = if (isEnglish) "Work" else "班",
                 isWorkday = true,
             )
         }
@@ -160,10 +173,8 @@ object ChineseCalendarInfo {
 
         return HolidayMarker(
             name = holiday.name,
-            label = "休",
+            label = if (isEnglish) "Off" else "休",
             isWorkday = false,
         )
     }
 }
-
-

@@ -25,12 +25,14 @@ object ReminderNotifier {
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channelName = context.getString(R.string.channel_name_reminders)
+        val channelDescription = context.getString(R.string.channel_description_reminders)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            CHANNEL_NAME,
+            channelName,
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = CHANNEL_DESCRIPTION
+            description = channelDescription
         }
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
@@ -95,5 +97,3 @@ object ReminderNotifier {
         NotificationManagerCompat.from(context).notify(reminderId.toInt(), notification)
     }
 }
-
-

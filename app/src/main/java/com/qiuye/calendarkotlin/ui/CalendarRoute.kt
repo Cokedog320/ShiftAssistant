@@ -75,6 +75,7 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
 import com.qiuye.calendarkotlin.diary.ui.DiaryListBottomSheet
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.localDate
+import com.qiuye.calendarkotlin.ui.theme.LanguageMode
 import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 
 private val pagerStartMonth: YearMonth = YearMonth.of(1900, 1)
@@ -86,6 +87,8 @@ fun CalendarRoute(
     viewModel: CalendarViewModel,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    languageMode: LanguageMode,
+    onLanguageModeChange: (LanguageMode) -> Unit,
     isDark: Boolean,
     tasksViewModel: TasksViewModel = viewModel(factory = TasksViewModel.factory(LocalContext.current)),
     diaryViewModel: DiaryViewModel = viewModel(factory = DiaryViewModel.factory(LocalContext.current)),
@@ -137,6 +140,8 @@ fun CalendarRoute(
         onCloseRemindersCenter = viewModel::closeReminders,
         themeMode = themeMode,
         onThemeModeChange = onThemeModeChange,
+        languageMode = languageMode,
+        onLanguageModeChange = onLanguageModeChange,
         isDark = isDark,
         onOpenDiaryList = viewModel::openDiaryList,
         onCloseDiaryList = viewModel::closeDiaryList,
@@ -210,6 +215,8 @@ private fun CalendarScreen(
     onCloseRemindersCenter: () -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    languageMode: LanguageMode,
+    onLanguageModeChange: (LanguageMode) -> Unit,
     isDark: Boolean,
     onOpenDiaryList: () -> Unit,
     onCloseDiaryList: () -> Unit,
@@ -255,20 +262,23 @@ private fun CalendarScreen(
     val handleToday = {
         onToday()
     }
+    val themeCdSystemToLight = stringResource(R.string.theme_cd_system_to_light)
+    val themeCdLightToDark = stringResource(R.string.theme_cd_light_to_dark)
+    val themeCdDarkToSystem = stringResource(R.string.theme_cd_dark_to_system)
     val (themeIcon, themeDescription, nextThemeMode) = when (themeMode) {
         ThemeMode.SYSTEM -> Triple(
             Icons.Rounded.SettingsBrightness,
-            "当前跟随系统，切换到浅色模式",
+            themeCdSystemToLight,
             ThemeMode.LIGHT,
         )
         ThemeMode.LIGHT -> Triple(
             Icons.Rounded.LightMode,
-            "当前浅色模式，切换到深色模式",
+            themeCdLightToDark,
             ThemeMode.DARK,
         )
         ThemeMode.DARK -> Triple(
             Icons.Rounded.DarkMode,
-            "当前深色模式，切换到跟随系统模式",
+            themeCdDarkToSystem,
             ThemeMode.SYSTEM,
         )
     }
@@ -527,6 +537,8 @@ private fun CalendarScreen(
                     calendarData = uiState.calendarData,
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
+                    languageMode = languageMode,
+                    onLanguageModeChange = onLanguageModeChange,
                     isDark = isDark,
                     onDismiss = onCloseSettings,
                     onClearOverrides = onClearOverrides,

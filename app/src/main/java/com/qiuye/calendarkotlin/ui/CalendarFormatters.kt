@@ -2,13 +2,37 @@
 
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 
-internal val monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年 M月", Locale.CHINA)
-internal val fullDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE", Locale.CHINA)
-internal val shortDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.CHINA)
-internal val noteMonthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月", Locale.CHINA)
-internal val noteDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M月d日 EEEE", Locale.CHINA)
-internal val pickerMonthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy年MM月", Locale.CHINA)
-internal val weekdayLabels = listOf("一", "二", "三", "四", "五", "六", "日")
+internal fun monthFormatter(): DateTimeFormatter = when {
+    isEnglishAppLocale() -> DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
+    else -> DateTimeFormatter.ofPattern("yyyy年 M月", Locale.CHINA)
+}
 
+internal fun fullDateFormatter(): DateTimeFormatter = when {
+    isEnglishAppLocale() -> DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE", Locale.ENGLISH)
+    else -> DateTimeFormatter.ofPattern("yyyy年MM月dd日 EEEE", Locale.CHINA)
+}
+
+internal fun shortDateFormatter(): DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault())
+
+internal fun noteMonthFormatter(): DateTimeFormatter = when {
+    isEnglishAppLocale() -> DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
+    else -> DateTimeFormatter.ofPattern("yyyy年MM月", Locale.CHINA)
+}
+
+internal fun noteDateFormatter(): DateTimeFormatter = when {
+    isEnglishAppLocale() -> DateTimeFormatter.ofPattern("MMM d, EEEE", Locale.ENGLISH)
+    else -> DateTimeFormatter.ofPattern("M月d日 EEEE", Locale.CHINA)
+}
+
+internal fun pickerMonthFormatter(): DateTimeFormatter = when {
+    isEnglishAppLocale() -> DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
+    else -> DateTimeFormatter.ofPattern("yyyy年MM月", Locale.CHINA)
+}
+
+internal fun weekdayLabels(): List<String> = when {
+    isEnglishAppLocale() -> listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    else -> listOf("一", "二", "三", "四", "五", "六", "日")
+}
 

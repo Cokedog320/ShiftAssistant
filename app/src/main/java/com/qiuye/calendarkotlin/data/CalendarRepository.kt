@@ -209,7 +209,7 @@ class CalendarRepository(
                         name = legacy.name,
                         cycleStartDate = legacy.cycleStartDate,
                         cycleEndDate = legacy.cycleEndDate,
-                        pattern = legacy.pattern,
+                        pattern = legacy.pattern.normalizeIdsByNameAndColor(),
                         overrides = legacy.overrides
                     )
                 )
@@ -257,6 +257,7 @@ class CalendarRepository(
         return runCatching { json.decodeFromString<List<ShiftDefinition>>(raw) }
             .getOrElse { CalendarData().pattern }
             .ifEmpty { CalendarData().pattern }
+            .normalizeIdsByNameAndColor()
     }
 
     private fun decodeNotes(preferences: Preferences): Map<String, String> {
@@ -270,6 +271,15 @@ class CalendarRepository(
         return runCatching { json.decodeFromString<Map<String, ShiftDefinition>>(raw) }
             .getOrElse { emptyMap() }
     }
+
+    private fun List<ShiftDefinition>.normalizeIdsByNameAndColor(): List<ShiftDefinition> {
+        val firstIdBySignature = mutableMapOf<String, String>()
+        return map { shift ->
+            val signature = "${shift.name}\u0000${shift.color.name}"
+            val normalizedId = firstIdBySignature.getOrPut(signature) { shift.id }
+            if (normalizedId == shift.id) shift else shift.copy(id = normalizedId)
+        }
+    }
 }
 
 @Serializable
@@ -282,5 +292,3 @@ private data class LegacyShiftProfile(
     val overrides: Map<String, ShiftDefinition> = emptyMap(),
     val notes: Map<String, String> = emptyMap(),
 )
-
-

@@ -1,4 +1,4 @@
-<resources>
+﻿<resources>
     <string name="app_name">倒班助手</string>
     <string name="import_failed_invalid_file">导入失败：文件格式不正确或已损坏</string>
     <string name="new_shift_profile">新排班方案</string>
@@ -12,6 +12,197 @@
     <string name="tab_task_reminders">任务提醒</string>
     <string name="tab_diary">日记</string>
     <string name="tab_notes">备忘录</string>
+    <string name="channel_name_reminders">提醒</string>
+    <string name="channel_description_reminders">提醒通知</string>
+
+    <!-- Shared UI actions -->
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="close">关闭</string>
+    <string name="back">返回</string>
+    <string name="clear">清空</string>
+    <string name="go_enable">去开启</string>
+    <string name="go_to_settings_text">去设置</string>
+    <string name="none">无</string>
+    <string name="all">全部</string>
+    <string name="completed">已完成</string>
+    <string name="today">今天</string>
+    <string name="delete_confirm_title">删除确认</string>
+    <string name="select_date">选择日期</string>
+    <string name="theme_follow_system">跟随系统</string>
+
+    <!-- EditTaskScreen -->
+    <string name="reminder_saved_success">保存成功</string>
+    <string name="reminder_saved_past_no_alarm">已保存（时间已过去，不会闹铃）</string>
+    <string name="reminder_save_warn_both_permissions">，但通知和闹钟权限未开启</string>
+    <string name="reminder_save_warn_notification">，但通知权限未开启</string>
+    <string name="reminder_save_warn_exact_alarm">，但精确闹钟权限未开启</string>
+    <string name="select_time">选择时间</string>
+    <string name="continue_save">继续保存</string>
+    <string name="time_already_past">时间已过去</string>
+    <string name="past_time_confirm_message">保存后不会注册闹钟，是否继续？</string>
+    <string name="delete_reminder_title">删除提醒</string>
+    <string name="delete_reminder_message">删除后会同时取消系统闹钟。</string>
+    <string name="new_reminder">新建提醒</string>
+    <string name="edit_reminder">编辑提醒</string>
+    <string name="reminder_date">提醒日期</string>
+    <string name="reminder_time_label">提醒时间</string>
+    <string name="quick_shortcuts">快捷</string>
+    <string name="morning">早上</string>
+    <string name="afternoon">下午</string>
+    <string name="evening">晚上</string>
+    <string name="exact_alarm_not_granted">精确闹钟权限未开启</string>
+    <string name="exact_alarm_delay_warning">提醒可能会延迟约1分钟。点击右侧按钮前往设置开启。</string>
+    <string name="reminder_input_placeholder">准备做什么？</string>
+    <string name="reminder_title_required">标题不能为空</string>
+
+    <!-- ReminderListScreen -->
+    <string name="task_reminders_title">任务提醒</string>
+    <string name="back_to_calendar">返回日历</string>
+    <string name="lightweight_local_reminders">轻量本地提醒</string>
+    <string name="add_reminder">添加提醒</string>
+    <string name="notification_not_granted">通知权限未开启</string>
+    <string name="notification_permission_desc">开启后才能在到点时发送提醒。</string>
+    <string name="exact_reminder_not_enabled">精确提醒未开启</string>
+    <string name="exact_alarm_permission_desc">建议开启以保证提醒不延迟。</string>
+    <string name="no_reminders_yet">还没有提醒</string>
+    <string name="no_reminders_desc">先创建一个单次提醒，\n到了时间手机会弹出通知。</string>
+
+    <!-- DatePicker -->
+    <string name="jump_to_date">跳转日期</string>
+
+    <!-- MonthHeader -->
+    <string name="view_schedule_by_month">按月查看排班节奏</string>
+    <string name="edit_selected_date">编辑选中日期</string>
+    <string name="prev_month">上一个月</string>
+    <string name="next_month">下一个月</string>
+
+    <!-- CalendarSummary -->
+    <string name="current_rule">当前规则</string>
+    <string name="start_date_label">开始日期：</string>
+    <string name="not_set">未设置</string>
+    <string name="end_date_separator"> · 结束日期：</string>
+    <string name="no_limit">不限</string>
+    <string name="holiday_chip_label">休: 法定放假</string>
+    <string name="work_chip_label">班: 调休上班</string>
+    <string name="calendar_summary_stats">%1$d 天一个循环，备注 %2$d 条，手动改班 %3$d 天。</string>
+
+    <!-- CalendarRoute theme toggle -->
+    <string name="theme_cd_system_to_light">当前跟随系统，切换到浅色模式</string>
+    <string name="theme_cd_light_to_dark">当前浅色模式，切换到深色模式</string>
+    <string name="theme_cd_dark_to_system">当前深色模式，切换到跟随系统模式</string>
+
+    <!-- DayDetailBottomSheet -->
+    <string name="current_shift_display">当前显示：%s</string>
+    <string name="no_shift_assigned">无排班</string>
+    <string name="lunar_prefix">农历 </string>
+    <string name="manual_override">手动改班</string>
+    <string name="follow_pattern">跟随规律</string>
+    <string name="duration_days_label">持续天数</string>
+    <string name="days_format">%d 天</string>
+    <string name="view_details_cd">查看详情</string>
+    <string name="delete_task_cd">删除任务</string>
+    <string name="note_label">备注</string>
+    <string name="note_placeholder">添加备忘、待办事项或交接说明</string>
+
+    <!-- NotesBottomSheet -->
+    <string name="note_scope_this_month">本月</string>
+    <string name="note_scope_recent_30_days">近30天</string>
+    <string name="notes_center">备忘录中心</string>
+    <string name="notes_center_desc">按月份、时间范围和关键词管理所有备注</string>
+    <string name="total_notes_stat">总备注</string>
+    <string name="current_results">当前结果</string>
+    <string name="this_month_notes">本月备注</string>
+    <string name="latest_entry">最近一条</string>
+    <string name="search_notes_label">搜索备注</string>
+    <string name="search_notes_placeholder">输入备注关键词、日期或月份</string>
+    <string name="all_months">全部月份</string>
+    <string name="total_notes_count">共 %d 条备注</string>
+    <string name="no_notes_yet">还没有任何备注</string>
+    <string name="no_notes_matching">没有符合条件的备注</string>
+    <string name="no_notes_hint">先去日期详情里写一条备注吧。</string>
+    <string name="no_notes_filter_hint">换个关键词、月份或时间范围试试。</string>
+    <string name="delete_note_confirm_message">确定要删除 %s 的这篇备注吗？</string>
+    <string name="delete_note_cd">删除备注</string>
+    <string name="lunar_label_format">农历 %s</string>
+    <string name="reminder_count_format">⏰ %d条提醒</string>
+
+    <!-- ProfileSelectBottomSheet -->
+    <string name="select_shift_profile">选择排班方案</string>
+    <string name="no_shift_rule">未设置排班规律</string>
+    <string name="currently_active_cd">当前激活</string>
+    <string name="delete_profile_cd">删除方案</string>
+    <string name="new_profile_name_format">新方案 %d</string>
+    <string name="add_profile">新增方案</string>
+    <string name="profile_settings">方案设置</string>
+
+    <!-- SettingsBottomSheet -->
+    <string name="schedule_settings">排班设置</string>
+    <string name="shift_profile_section">排班方案</string>
+    <string name="new_profile_cd">新建方案</string>
+    <string name="new_text">新建</string>
+    <string name="delete_current_profile_cd">删除当前方案</string>
+    <string name="profile_name_label">方案名称</string>
+    <string name="cycle_start_date">周期开始日期</string>
+    <string name="cycle_end_date">周期结束日期</string>
+    <string name="theme_mode">主题模式</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="language_label">语言</string>
+    <string name="language_chinese">中文</string>
+    <string name="show_lunar">显示农历</string>
+    <string name="show_lunar_desc">在月历格子和日期详情中显示农历、节气和传统节日</string>
+    <string name="clear_all_overrides">清除所有手动改班</string>
+    <string name="data_management">数据管理</string>
+    <string name="export_backup">导出备份</string>
+    <string name="import_data">导入数据</string>
+    <string name="shift_pattern_section">排班规律</string>
+    <string name="new_shift_default_name">新班次</string>
+    <string name="add_day">添加一天</string>
+    <string name="day_number_format">第 %d 天</string>
+    <string name="shift_name_label">班次名称</string>
+    <string name="color_label">颜色</string>
+
+    <!-- DiaryListBottomSheet -->
+    <string name="diary_center">日记中心</string>
+    <string name="diary_center_desc">回顾和管理您写下的生活点滴</string>
+    <string name="write_diary">写日记</string>
+    <string name="total_diary_count">总日记数</string>
+    <string name="this_month_diary">本月记录</string>
+    <string name="mood_records">心情记录</string>
+    <string name="current_filter">当前筛选</string>
+    <string name="search_diary_label">搜索日记</string>
+    <string name="search_diary_placeholder">输入日记正文关键词</string>
+    <string name="no_diary_yet">还没有写过日记</string>
+    <string name="no_diary_matching">没有找到符合条件的日记</string>
+    <string name="no_diary_hint">点击主页日期详情中的“写日记”开始第一篇吧！</string>
+    <string name="no_diary_filter_hint">尝试换个关键词进行搜索。</string>
+
+    <!-- DiaryEditScreen -->
+    <string name="mood_label_happy">开心</string>
+    <string name="mood_label_calm">平静</string>
+    <string name="mood_label_normal">一般</string>
+    <string name="mood_label_sad">低落</string>
+    <string name="mood_label_irritated">烦躁</string>
+    <string name="current_mood">当前心情</string>
+    <string name="diary_placeholder">在这里记录下今天的点滴...</string>
+    <string name="save_diary">保存日记</string>
+    <string name="delete_diary_confirm_message">日记删除后将无法恢复，确定要删除吗？</string>
+
+    <!-- RemindersBottomSheet -->
+    <string name="reminder_scope_pending">待完成</string>
+    <string name="reminder_scope_overdue">已过期</string>
+    <string name="reminders_center">提醒中心</string>
+    <string name="reminders_center_desc">汇总并管理所有日程、待办和定时提醒事项</string>
+    <string name="total_reminders_stat">总提醒数</string>
+    <string name="search_reminders_label">搜索提醒</string>
+    <string name="search_reminders_placeholder">输入提醒标题、备注或日期关键词</string>
+    <string name="total_reminders_count">共 %d 条提醒</string>
+    <string name="no_reminders_empty">还没有任何提醒</string>
+    <string name="no_reminders_matching">没有符合条件的提醒</string>
+    <string name="no_reminders_hint">在主界面的具体日期详情中点击下方按钮创建提醒。</string>
+    <string name="no_reminders_filter_hint">换个关键词、月份或筛选状态试试。</string>
+    <string name="view_date_cd">查看日期</string>
 </resources>
-
-

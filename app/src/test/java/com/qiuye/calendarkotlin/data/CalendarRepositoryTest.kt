@@ -67,6 +67,34 @@ class CalendarRepositoryTest : BaseUnitTest() {
     }
 
     @Test
+    fun testDecodePatternNormalizesDuplicateShiftIds() = runBlocking {
+        val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
+        val profilesKey = stringPreferencesKey("profiles")
+
+        val legacyProfiles = listOf(
+            ShiftProfile(
+                id = "p1",
+                name = "Profile 1",
+                pattern = listOf(
+                    ShiftDefinition("3", "Rest", ShiftColorOption.GREEN),
+                    ShiftDefinition("4", "Rest", ShiftColorOption.GREEN),
+                    ShiftDefinition("1", "Day", ShiftColorOption.BLUE),
+                ),
+            )
+        )
+
+        testDataStore.edit { prefs ->
+            prefs[profilesKey] = json.encodeToString(legacyProfiles)
+        }
+
+        val data = repository.getCurrentData()
+        assertEquals(listOf("3", "3", "1"), data.activeProfile.pattern.map { it.id })
+    }
+
+    @Test
     fun testDecodeProfilesAndNotesFallbackWhenProfilesEmpty() = runBlocking {
         val data = repository.getCurrentData()
         assertEquals(1, data.profiles.size)

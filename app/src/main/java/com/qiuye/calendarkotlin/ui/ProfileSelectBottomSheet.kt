@@ -34,9 +34,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
+import com.qiuye.calendarkotlin.domain.displayName
 import com.qiuye.calendarkotlin.model.CalendarData
 import com.qiuye.calendarkotlin.model.ShiftProfile
 
@@ -70,7 +73,7 @@ fun ProfileSelectBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "选择排班方案",
+                    text = stringResource(R.string.select_shift_profile),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -85,9 +88,9 @@ fun ProfileSelectBottomSheet(
                 items(calendarData.profiles) { profile ->
                     val isActive = profile.id == calendarData.activeProfileId
                     val patternSummary = if (profile.pattern.isEmpty()) {
-                        "未设置排班规律"
+                        stringResource(R.string.no_shift_rule)
                     } else {
-                        profile.pattern.joinToString(" → ") { it.name }
+                        profile.pattern.joinToString(" → ") { it.displayName() }
                     }
 
                     Surface(
@@ -130,7 +133,7 @@ fun ProfileSelectBottomSheet(
                                 if (isActive) {
                                     Icon(
                                         imageVector = Icons.Rounded.Check,
-                                        contentDescription = "当前激活",
+                                        contentDescription = stringResource(R.string.currently_active_cd),
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -143,7 +146,7 @@ fun ProfileSelectBottomSheet(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Rounded.Delete,
-                                            contentDescription = "删除方案",
+                                            contentDescription = stringResource(R.string.delete_profile_cd),
                                             tint = if (isActive) MaterialTheme.colorScheme.error.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(20.dp)
                                         )
@@ -155,13 +158,14 @@ fun ProfileSelectBottomSheet(
                 }
             }
 
+            val newProfileName = stringResource(R.string.new_profile_name_format, calendarData.profiles.size + 1)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
                     onClick = {
-                        onAddProfile("新方案 ${calendarData.profiles.size + 1}")
+                        onAddProfile(newProfileName)
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f).testTag("btn_add_profile_direct"),
@@ -169,7 +173,7 @@ fun ProfileSelectBottomSheet(
                 ) {
                     Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("新增方案")
+                    Text(stringResource(R.string.add_profile))
                 }
 
                 OutlinedButton(
@@ -182,7 +186,7 @@ fun ProfileSelectBottomSheet(
                 ) {
                     Icon(imageVector = Icons.Rounded.Settings, contentDescription = null)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("方案设置")
+                    Text(stringResource(R.string.profile_settings))
                 }
             }
         }

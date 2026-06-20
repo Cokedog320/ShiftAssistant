@@ -52,7 +52,7 @@ object CalendarCalculator {
 
         if (calendarData.pattern.isEmpty()) return null
 
-        val isAllSameShift = calendarData.pattern.all { it.name == calendarData.pattern.first().name }
+        val isAllSameShift = calendarData.pattern.all { it.id == calendarData.pattern.first().id }
         if (isAllSameShift) {
             val firstShift = calendarData.pattern.first()
             val cycleStartDate = calendarData.cycleStartDate?.let(::parseStorageDate)
@@ -101,5 +101,4 @@ object CalendarCalculator {
 fun LocalDate.toStorageKey(): String = toString()
 
 fun parseStorageDate(value: String): LocalDate = LocalDate.parse(value)
-
 

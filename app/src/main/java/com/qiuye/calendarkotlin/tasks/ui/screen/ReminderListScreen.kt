@@ -47,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.formatDate
 import com.qiuye.calendarkotlin.tasks.data.formatTime
@@ -103,14 +105,14 @@ fun ReminderListScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "任务提醒",
+                    text = stringResource(R.string.task_reminders_title),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = if (isDark) Color.White else Color(0xFF333333),
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(onClick = onNavigateBack) {
-                    Text("返回日历", color = PrimaryAccent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.back_to_calendar), color = PrimaryAccent, fontWeight = FontWeight.Bold)
                 }
             }
             Surface(
@@ -119,7 +121,7 @@ fun ReminderListScreen(
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 Text(
-                    text = "轻量本地提醒",
+                    text = stringResource(R.string.lightweight_local_reminders),
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall,
                     color = PrimaryAccent,
@@ -184,7 +186,7 @@ fun ReminderListScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 26.dp, end = 22.dp)
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "添加提醒", modifier = Modifier.size(32.dp))
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_reminder), modifier = Modifier.size(32.dp))
         }
     }
 }
@@ -205,9 +207,9 @@ private fun PermissionBanner(onRequestNotificationPermission: () -> Unit, isDark
             Icon(Icons.Filled.NotificationsOff, contentDescription = null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("通知权限未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
+                Text(stringResource(R.string.notification_not_granted), fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
                 Text(
-                    text = "开启后才能在到点时发送提醒。",
+                    text = stringResource(R.string.notification_permission_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (isDark) Color.Gray else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -215,7 +217,7 @@ private fun PermissionBanner(onRequestNotificationPermission: () -> Unit, isDark
             TextButton(
                 onClick = onRequestNotificationPermission
             ) {
-                Text("去开启", fontWeight = FontWeight.Bold, color = PrimaryAccent)
+                Text(stringResource(R.string.go_enable), fontWeight = FontWeight.Bold, color = PrimaryAccent)
             }
         }
     }
@@ -237,9 +239,9 @@ private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit, isDark: 
             Icon(Icons.Filled.EventBusy, contentDescription = null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("精确提醒未开启", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
+                Text(stringResource(R.string.exact_reminder_not_enabled), fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = if (isDark) Color.White else Color.Black)
                 Text(
-                    text = "建议开启以保证提醒不延迟。",
+                    text = stringResource(R.string.exact_alarm_permission_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (isDark) Color.Gray else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -247,7 +249,7 @@ private fun ExactAlarmBanner(onRequestExactAlarmPermission: () -> Unit, isDark: 
             TextButton(
                 onClick = onRequestExactAlarmPermission
             ) {
-                Text("去设置", fontWeight = FontWeight.Bold, color = PrimaryAccent)
+                Text(stringResource(R.string.go_to_settings_text), fontWeight = FontWeight.Bold, color = PrimaryAccent)
             }
         }
     }
@@ -397,7 +399,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit, isDark: Boolean = false) {
         Spacer(modifier = Modifier.height(12.dp))
         
         Text(
-            text = "还没有提醒",
+            text = stringResource(R.string.no_reminders_yet),
             fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
             color = if (isDark) Color.White else Color(0xFF333333)
@@ -406,7 +408,7 @@ private fun EmptyStateCard(onAddReminder: () -> Unit, isDark: Boolean = false) {
         Spacer(modifier = Modifier.height(10.dp))
         
         Text(
-            text = "先创建一个单次提醒，\n到了时间手机会弹出通知。",
+            text = stringResource(R.string.no_reminders_desc),
             fontSize = 16.sp,
             color = if (isDark) Color.Gray else Color.Gray.copy(alpha = 0.8f),
             textAlign = TextAlign.Center,
@@ -455,7 +457,7 @@ private fun ReminderCard(
                     contentAlignment = Alignment.Center
                 ) {
                     if (reminder.isCompleted) {
-                        Icon(Icons.Filled.Check, contentDescription = "已完成", tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.completed), tint = Color.White, modifier = Modifier.size(18.dp))
                     } else {
                         Canvas(modifier = Modifier.size(28.dp)) {
                             drawCircle(
@@ -497,7 +499,7 @@ private fun ReminderCard(
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = "删除",
+                        contentDescription = stringResource(R.string.delete),
                         tint = Color.LightGray.copy(alpha = 0.6f),
                         modifier = Modifier.size(22.dp)
                     )
@@ -524,4 +526,3 @@ fun ReminderListScreenPreview() {
         )
     }
 }
-

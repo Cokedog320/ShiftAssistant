@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.qiuye.calendarkotlin.BaseUnitTest
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.notification.ReminderNotifier
 import org.junit.Assert.*
@@ -35,7 +36,7 @@ class NotificationGeneratorTest : BaseUnitTest() {
     fun `createChannel should create reminder_alerts channel`() {
         val channel = shadowNotificationManager.notificationChannels.find { it.id == ReminderNotifier.CHANNEL_ID }
         assertNotNull("Channel should be created", channel)
-        assertEquals(ReminderNotifier.CHANNEL_NAME, channel?.name)
+        assertEquals(context.getString(R.string.channel_name_reminders), channel?.name)
     }
 
     @Test

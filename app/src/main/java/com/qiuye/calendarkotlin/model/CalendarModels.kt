@@ -90,13 +90,19 @@ data class HolidayMarker(
     val name: String,
     val label: String,
     val isWorkday: Boolean,
+    val type: HolidayType = HolidayType.HOLIDAY,
 )
+
+enum class HolidayType {
+    HOLIDAY,
+    OBSERVANCE,
+}
 
 val defaultPattern: List<ShiftDefinition> = listOf(
     ShiftDefinition(id = "1", name = "白班", color = ShiftColorOption.BLUE),
     ShiftDefinition(id = "2", name = "夜班", color = ShiftColorOption.INDIGO),
     ShiftDefinition(id = "3", name = "休息", color = ShiftColorOption.GREEN),
-    ShiftDefinition(id = "4", name = "休息", color = ShiftColorOption.GREEN),
+    ShiftDefinition(id = "3", name = "休息", color = ShiftColorOption.GREEN),
 )
 
 val vacationShift = ShiftDefinition(
@@ -105,4 +111,8 @@ val vacationShift = ShiftDefinition(
     color = ShiftColorOption.GREEN,
 )
 
-
+val businessTripShift = ShiftDefinition(
+    id = "business_trip",
+    name = "出差",
+    color = ShiftColorOption.ORANGE,
+)

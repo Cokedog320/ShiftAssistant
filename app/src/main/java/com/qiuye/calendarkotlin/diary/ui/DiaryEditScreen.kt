@@ -56,9 +56,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.ui.fullDateFormatter
 import java.time.LocalDate
 
@@ -87,7 +89,13 @@ fun DiaryEditScreen(
     }
 
     val moodEmojis = listOf("😃", "😊", "🙂", "😔", "😠")
-    val moodLabels = listOf("开心", "平静", "一般", "低落", "烦躁")
+    val moodLabels = listOf(
+        stringResource(R.string.mood_label_happy),
+        stringResource(R.string.mood_label_calm),
+        stringResource(R.string.mood_label_normal),
+        stringResource(R.string.mood_label_sad),
+        stringResource(R.string.mood_label_irritated)
+    )
 
     // Theme Colors matching prototype
     val bgGentle = if (isDark) Color(0xFF000000) else Color(0xFFF4F7F6)
@@ -136,14 +144,14 @@ fun DiaryEditScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back),
                             tint = textPrimary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = date.format(fullDateFormatter),
+                        text = date.format(fullDateFormatter()),
                         color = textPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -164,7 +172,7 @@ fun DiaryEditScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "删除",
+                            text = stringResource(R.string.delete),
                             color = dangerColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
@@ -189,7 +197,7 @@ fun DiaryEditScreen(
                         .padding(24.dp)
                 ) {
                     Text(
-                        text = "当前心情",
+                        text = stringResource(R.string.current_mood),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = textSecondary,
@@ -263,7 +271,7 @@ fun DiaryEditScreen(
                         onValueChange = { draftContent = it },
                         placeholder = {
                             Text(
-                                text = "在这里记录下今天的点滴...",
+                                text = stringResource(R.string.diary_placeholder),
                                 color = if (isDark) Color(0xFF555555) else Color(0xFFD0D0D0)
                             )
                         },
@@ -310,7 +318,7 @@ fun DiaryEditScreen(
                     )
                 ) {
                     Text(
-                        text = "保存日记",
+                        text = stringResource(R.string.save_diary),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -321,8 +329,8 @@ fun DiaryEditScreen(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text(text = "删除确认") },
-                text = { Text(text = "日记删除后将无法恢复，确定要删除吗？") },
+                title = { Text(stringResource(R.string.delete_confirm_title)) },
+                text = { Text(stringResource(R.string.delete_diary_confirm_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -332,7 +340,7 @@ fun DiaryEditScreen(
                         },
                         modifier = Modifier.testTag("btn_dialog_confirm")
                     ) {
-                        Text(text = "确定", color = dangerColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.confirm), color = dangerColor, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -340,7 +348,7 @@ fun DiaryEditScreen(
                         onClick = { showDeleteDialog = false },
                         modifier = Modifier.testTag("btn_dialog_cancel")
                     ) {
-                        Text(text = "取消", color = textSecondary)
+                        Text(stringResource(R.string.cancel), color = textSecondary)
                     }
                 }
             )

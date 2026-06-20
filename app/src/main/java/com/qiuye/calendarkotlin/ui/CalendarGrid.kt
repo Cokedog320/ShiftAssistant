@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qiuye.calendarkotlin.model.DayCell
 import com.qiuye.calendarkotlin.model.ShiftDefinition
+import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 import java.time.LocalDate
 
 @Composable
@@ -63,7 +64,7 @@ fun CalendarGrid(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                weekdayLabels.forEach { label ->
+                weekdayLabels().forEach { label ->
                     Text(
                         text = label,
                         modifier = Modifier.weight(1f),
@@ -103,6 +104,7 @@ private fun DayCellCard(
 ) {
     val shiftPalette = dayCell.shift?.color?.palette(isDark = isDark)
     val isDoubleDigitDay = dayCell.date.dayOfMonth >= 10
+    val isEnglish = isEnglishAppLocale()
     Surface(
         modifier = modifier
             .testTag("day_cell_${dayCell.date}")
@@ -136,7 +138,7 @@ private fun DayCellCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(16.dp),
+                        .height(if (isEnglish) 18.dp else 16.dp),
                 ) {
                     if (dayCell.shift != null && shiftPalette != null) {
                         val hasHoliday = dayCell.holiday != null
@@ -145,9 +147,9 @@ private fun DayCellCard(
                         } else {
                             RoundedCornerShape(bottomEnd = 10.dp, topStart = 16.dp)
                         }
-                        val horizontalPadding = if (hasHoliday) 4.5.dp else 5.5.dp
-                        val verticalPadding = if (hasHoliday) 1.dp else 1.5.dp
-                        val fontSize = if (hasHoliday) 9.sp else 10.5.sp
+                        val horizontalPadding = if (hasHoliday) 4.5.dp else if (isEnglish) 6.dp else 5.5.dp
+                        val verticalPadding = if (hasHoliday) 1.dp else if (isEnglish) 1.dp else 1.5.dp
+                        val fontSize = if (hasHoliday) 9.sp else if (isEnglish) 9.5.sp else 10.5.sp
 
                         Box(
                             modifier = Modifier
@@ -197,8 +199,8 @@ private fun DayCellCard(
 
                 Box(
                     modifier = Modifier
-                        .height(24.dp)
-                        .heightIn(min = 24.dp)
+                        .height(if (isEnglish) 26.dp else 24.dp)
+                        .heightIn(min = if (isEnglish) 26.dp else 24.dp)
                         .background(
                             color = if (dayCell.isToday || dayCell.isSelected) accentColor else Color.Transparent,
                             shape = RoundedCornerShape(12.dp),
@@ -208,7 +210,7 @@ private fun DayCellCard(
                 ) {
                     Text(
                         text = dayCell.date.dayOfMonth.toString(),
-                        fontSize = if (isDoubleDigitDay) 14.sp else 16.sp,
+                        fontSize = if (isDoubleDigitDay) 14.sp else if (isEnglish) 15.sp else 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         softWrap = false,
@@ -231,10 +233,10 @@ private fun DayCellCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(20.dp),
+                            .height(if (isEnglish) 18.dp else 20.dp),
                     )
                 } else {
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(if (isEnglish) 18.dp else 20.dp))
                 }
 
                 if (dayCell.hasNote || dayCell.hasReminder || dayCell.hasDiary) {
@@ -273,12 +275,11 @@ private fun DayCellCard(
 }
 
 
-private fun ShiftDefinition.monthGridLabel(): String = when (name) {
-    "白班" -> "白"
-    "夜班" -> "夜"
-    "休息" -> "休"
-    "休假" -> "假"
+private fun ShiftDefinition.monthGridLabel(): String = when (id) {
+    "1" -> if (isEnglishAppLocale()) "Day" else "白"
+    "2" -> if (isEnglishAppLocale()) "Night" else "夜"
+    "3" -> if (isEnglishAppLocale()) "Off" else "休"
+    "vacation" -> if (isEnglishAppLocale()) "Leave" else "假"
+    "business_trip" -> if (isEnglishAppLocale()) "Trip" else "出"
     else -> name.take(2)
 }
-
-

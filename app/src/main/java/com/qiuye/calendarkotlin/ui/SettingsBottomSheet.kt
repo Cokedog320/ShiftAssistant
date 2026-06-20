@@ -52,11 +52,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.model.CalendarData
+import com.qiuye.calendarkotlin.ui.theme.LanguageMode
 import com.qiuye.calendarkotlin.model.ShiftColorOption
 import com.qiuye.calendarkotlin.model.ShiftDefinition
+import com.qiuye.calendarkotlin.domain.normalizeProfileName
 import com.qiuye.calendarkotlin.model.defaultPattern
 import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 import java.util.UUID
@@ -67,6 +71,8 @@ fun SettingsBottomSheet(
     calendarData: CalendarData,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    languageMode: LanguageMode,
+    onLanguageModeChange: (LanguageMode) -> Unit,
     isDark: Boolean,
     onDismiss: () -> Unit,
     onClearOverrides: () -> Unit,
@@ -85,6 +91,11 @@ fun SettingsBottomSheet(
     val pattern = remember(calendarData.pattern) {
         mutableStateListOf<ShiftDefinition>().apply { addAll(calendarData.pattern) }
     }
+    val followSystemLabel = stringResource(R.string.theme_follow_system)
+    val lightLabel = stringResource(R.string.theme_light)
+    val darkLabel = stringResource(R.string.theme_dark)
+    val zhLabel = stringResource(R.string.language_chinese)
+    val newShiftName = stringResource(R.string.new_shift_default_name)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LazyColumn(
@@ -96,7 +107,7 @@ fun SettingsBottomSheet(
         ) {
             item {
                 Text(
-                    text = "排班设置",
+                    text = stringResource(R.string.schedule_settings),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                 )
@@ -117,7 +128,7 @@ fun SettingsBottomSheet(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "排班方案",
+                                text = stringResource(R.string.shift_profile_section),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -127,7 +138,7 @@ fun SettingsBottomSheet(
                             ) {
                                 var showProfileListBottomSheet by remember { mutableStateOf(false) }
                                 Box {
-                                    val defaultName = androidx.compose.ui.res.stringResource(com.qiuye.calendarkotlin.R.string.new_shift_profile)
+                                    val defaultName = stringResource(R.string.new_shift_profile)
                                     OutlinedButton(
                                         onClick = { showProfileListBottomSheet = true },
                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -152,7 +163,7 @@ fun SettingsBottomSheet(
                                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                                             ) {
                                                 Text(
-                                                    text = "选择排班方案",
+                                                    text = stringResource(R.string.select_shift_profile),
                                                     style = MaterialTheme.typography.titleMedium,
                                                     fontWeight = FontWeight.Bold,
                                                     modifier = Modifier.padding(bottom = 8.dp)
@@ -190,7 +201,7 @@ fun SettingsBottomSheet(
                                                                 if (isActive) {
                                                                     Icon(
                                                                         imageVector = Icons.Rounded.Check,
-                                                                        contentDescription = "当前激活",
+                                                                        contentDescription = stringResource(R.string.currently_active_cd),
                                                                         tint = MaterialTheme.colorScheme.primary
                                                                     )
                                                                 }
@@ -203,7 +214,7 @@ fun SettingsBottomSheet(
                                     }
                                 }
 
-                                val defaultName = androidx.compose.ui.res.stringResource(com.qiuye.calendarkotlin.R.string.new_shift_profile)
+                                val defaultName = stringResource(R.string.new_shift_profile)
                                 OutlinedButton(
                                     onClick = { onAddProfile(defaultName) },
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
@@ -211,11 +222,11 @@ fun SettingsBottomSheet(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.Add,
-                                        contentDescription = "新建方案",
+                                        contentDescription = stringResource(R.string.new_profile_cd),
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("新建")
+                                    Text(stringResource(R.string.new_text))
                                 }
 
                                 if (calendarData.profiles.size > 1) {
@@ -225,7 +236,7 @@ fun SettingsBottomSheet(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Rounded.Close,
-                                            contentDescription = "删除当前方案",
+                                            contentDescription = stringResource(R.string.delete_current_profile_cd),
                                             tint = MaterialTheme.colorScheme.error,
                                             modifier = Modifier.size(20.dp)
                                         )
@@ -242,7 +253,7 @@ fun SettingsBottomSheet(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().testTag("field_profile_name"),
-                            label = { Text("方案名称") },
+                            label = { Text(stringResource(R.string.profile_name_label)) },
                             singleLine = true,
                             maxLines = 1
                         )
@@ -251,7 +262,7 @@ fun SettingsBottomSheet(
             }
             item {
                 DatePickerField(
-                    label = "周期开始日期",
+                    label = stringResource(R.string.cycle_start_date),
                     value = startDate,
                     onPick = { startDate = it },
                     onClear = { startDate = "" },
@@ -260,7 +271,7 @@ fun SettingsBottomSheet(
             }
             item {
                 DatePickerField(
-                    label = "周期结束日期",
+                    label = stringResource(R.string.cycle_end_date),
                     value = endDate,
                     onPick = { endDate = it },
                     onClear = { endDate = "" },
@@ -279,7 +290,7 @@ fun SettingsBottomSheet(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Text(
-                            text = "主题模式",
+                            text = stringResource(R.string.theme_mode),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -288,13 +299,52 @@ fun SettingsBottomSheet(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             listOf(
-                                ThemeMode.SYSTEM to "跟随系统",
-                                ThemeMode.LIGHT to "浅色",
-                                ThemeMode.DARK to "深色",
+                                ThemeMode.SYSTEM to followSystemLabel,
+                                ThemeMode.LIGHT to lightLabel,
+                                ThemeMode.DARK to darkLabel,
                             ).forEach { (mode, label) ->
                                 FilterChip(
                                     selected = themeMode == mode,
                                     onClick = { onThemeModeChange(mode) },
+                                    label = { Text(label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = if (isDark) Color(0xFF3A4458) else MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = if (isDark) Color(0xFFE8F0FF) else MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 1f else 0.74f),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.language_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            listOf(
+                                LanguageMode.SYSTEM to followSystemLabel,
+                                LanguageMode.ZH to zhLabel,
+                                LanguageMode.EN to "English",
+                            ).forEach { (mode, label) ->
+                                FilterChip(
+                                    selected = languageMode == mode,
+                                    onClick = { onLanguageModeChange(mode) },
                                     label = { Text(label) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = if (isDark) Color(0xFF3A4458) else MaterialTheme.colorScheme.primaryContainer,
@@ -320,12 +370,12 @@ fun SettingsBottomSheet(
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                text = "显示农历",
+                            text = stringResource(R.string.show_lunar),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = "在月历格子和日期详情中显示农历、节气和传统节日",
+                            text = stringResource(R.string.show_lunar_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -349,13 +399,13 @@ fun SettingsBottomSheet(
                 ) {
                     Icon(Icons.Rounded.ClearAll, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("清除所有手动改班")
+                    Text(stringResource(R.string.clear_all_overrides))
                 }
             }
             item { HorizontalDivider() }
             item {
                 Text(
-                    text = "数据管理",
+                    text = stringResource(R.string.data_management),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -370,21 +420,21 @@ fun SettingsBottomSheet(
                         modifier = Modifier.weight(1f)
                             .testTag("btn_settings_export"),
                     ) {
-                        Text("导出备份")
+                        Text(stringResource(R.string.export_backup))
                     }
                     OutlinedButton(
                         onClick = onImport,
                         modifier = Modifier.weight(1f)
                             .testTag("btn_settings_import"),
                     ) {
-                        Text("导入数据")
+                        Text(stringResource(R.string.import_data))
                     }
                 }
             }
             item { HorizontalDivider() }
             item {
                 Text(
-                    text = "排班规律",
+                    text = stringResource(R.string.shift_pattern_section),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -407,7 +457,7 @@ fun SettingsBottomSheet(
                     onClick = {
                         pattern += ShiftDefinition(
                             id = UUID.randomUUID().toString(),
-                            name = "新班次",
+                            name = newShiftName,
                             color = ShiftColorOption.GRAY,
                         )
                     },
@@ -415,7 +465,7 @@ fun SettingsBottomSheet(
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("添加一天")
+                    Text(stringResource(R.string.add_day))
                 }
             }
             item {
@@ -424,7 +474,7 @@ fun SettingsBottomSheet(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     OutlinedButton(onClick = onDismiss) {
-                        Text("取消")
+                        Text(stringResource(R.string.cancel))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     TextButton(
@@ -439,7 +489,7 @@ fun SettingsBottomSheet(
                         },
                         modifier = Modifier.testTag("btn_settings_save"),
                     ) {
-                        Text("保存", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.save), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -466,28 +516,38 @@ private fun PatternEditorCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "第 ${index + 1} 天",
+                    text = stringResource(R.string.day_number_format, index + 1),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                 )
                 IconButton(onClick = onRemove) {
-                    Icon(Icons.Rounded.Close, contentDescription = "删除")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.delete))
                 }
             }
             OutlinedTextField(
                 value = shift.name,
-                onValueChange = { 
+                onValueChange = {
                     if (it.length <= 8) {
-                        onUpdate(shift.copy(name = it))
+                        val normalizedName = normalizeProfileName(it)
+                        val updatedShift =
+                            if (shift.isBuiltInShift() && normalizedName != shift.name) {
+                                shift.copy(
+                                    id = UUID.randomUUID().toString(),
+                                    name = normalizedName,
+                                )
+                            } else {
+                                shift.copy(name = normalizedName)
+                            }
+                        onUpdate(updatedShift)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("班次名称") },
+                label = { Text(stringResource(R.string.shift_name_label)) },
                 singleLine = true,
                 maxLines = 1
             )
             Text(
-                text = "颜色",
+                text = stringResource(R.string.color_label),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -508,9 +568,11 @@ private fun PatternEditorCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                 }
+
             }
         }
     }
 }
 
-
+private fun ShiftDefinition.isBuiltInShift(): Boolean =
+    id == "1" || id == "2" || id == "3" || id == "vacation" || id == "business_trip"

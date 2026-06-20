@@ -49,28 +49,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.viewmodel.NoteEntry
 import com.qiuye.calendarkotlin.tasks.data.ReminderEntity
 import com.qiuye.calendarkotlin.tasks.data.formatTime
 import androidx.compose.ui.text.style.TextDecoration
 import java.time.LocalDate
 import java.time.YearMonth
+import com.qiuye.calendarkotlin.domain.displayName
 
 private enum class NoteScope {
     ALL,
     THIS_MONTH,
     RECENT_30_DAYS,
 }
-
-private fun NoteScope.label(): String =
-    when (this) {
-        NoteScope.ALL -> "全部"
-        NoteScope.THIS_MONTH -> "本月"
-        NoteScope.RECENT_30_DAYS -> "近30天"
-    }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -106,8 +102,8 @@ fun NotesBottomSheet(
                 keyword.isBlank() ||
                     entry.text.contains(keyword, ignoreCase = true) ||
                     dateMatchesKeyword(entry.date, keyword) ||
-                    entry.month.format(noteMonthFormatter).contains(keyword, ignoreCase = true) ||
-                    entry.shift?.name?.contains(keyword, ignoreCase = true) == true ||
+                    entry.month.format(noteMonthFormatter()).contains(keyword, ignoreCase = true) ||
+                    entry.shift?.displayName()?.contains(keyword, ignoreCase = true) == true ||
                     entry.lunarLabel.contains(keyword, ignoreCase = true)
             monthMatches && scopeMatches && keywordMatches
         }
@@ -117,6 +113,7 @@ fun NotesBottomSheet(
         val currentMonth = YearMonth.now()
         noteEntries.count { it.month == currentMonth }
     }
+    val noneText = stringResource(R.string.none)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -133,18 +130,18 @@ fun NotesBottomSheet(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "备忘录中心",
+                        text = stringResource(R.string.notes_center),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "按月份、时间范围和关键词管理所有备注",
+                        text = stringResource(R.string.notes_center_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Rounded.Close, contentDescription = "关闭")
+                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.close))
                 }
             }
 
@@ -161,20 +158,20 @@ fun NotesBottomSheet(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         MemoStatCard(
-                            title = "总备注",
+                            title = stringResource(R.string.total_notes_stat),
                             value = noteEntries.size.toString(),
                         )
                         MemoStatCard(
-                            title = "当前结果",
+                            title = stringResource(R.string.current_results),
                             value = filteredEntries.size.toString(),
                         )
                         MemoStatCard(
-                            title = "本月备注",
+                            title = stringResource(R.string.this_month_notes),
                             value = currentMonthCount.toString(),
                         )
                         MemoStatCard(
-                            title = "最近一条",
-                            value = latestEntry?.date?.format(noteDateFormatter) ?: "无",
+                            title = stringResource(R.string.latest_entry),
+                            value = latestEntry?.date?.format(noteDateFormatter()) ?: noneText,
                         )
                     }
                 }
@@ -187,7 +184,13 @@ fun NotesBottomSheet(
                             FilterChip(
                                 selected = selectedScope == scope,
                                 onClick = { selectedScope = scope },
-                                label = { Text(scope.label()) },
+                                label = {
+                                    Text(when (scope) {
+                                        NoteScope.ALL -> stringResource(R.string.all)
+                                        NoteScope.THIS_MONTH -> stringResource(R.string.note_scope_this_month)
+                                        NoteScope.RECENT_30_DAYS -> stringResource(R.string.note_scope_recent_30_days)
+                                    })
+                                },
                             )
                         }
                     }
@@ -200,8 +203,8 @@ fun NotesBottomSheet(
                             .fillMaxWidth()
                             .testTag("input_notes_search"),
                         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                        label = { Text("搜索备注") },
-                        placeholder = { Text("输入备注关键词、日期或月份") },
+                        label = { Text(stringResource(R.string.search_notes_label)) },
+                        placeholder = { Text(stringResource(R.string.search_notes_placeholder)) },
                         singleLine = true,
                     )
                 }
@@ -213,20 +216,20 @@ fun NotesBottomSheet(
                         FilterChip(
                             selected = selectedMonth == null,
                             onClick = { selectedMonth = null },
-                            label = { Text("全部月份") },
+                            label = { Text(stringResource(R.string.all_months)) },
                         )
                         months.forEach { month ->
                             FilterChip(
                                 selected = selectedMonth == month,
                                 onClick = { selectedMonth = month },
-                                label = { Text(month.format(noteMonthFormatter)) },
+                                label = { Text(month.format(noteMonthFormatter())) },
                             )
                         }
                     }
                 }
                 item {
                     Text(
-                        text = "共 ${filteredEntries.size} 条备注",
+                        text = stringResource(R.string.total_notes_count, filteredEntries.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -244,12 +247,12 @@ fun NotesBottomSheet(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text(
-                                    text = if (noteEntries.isEmpty()) "还没有任何备注" else "没有符合条件的备注",
+                                    text = if (noteEntries.isEmpty()) stringResource(R.string.no_notes_yet) else stringResource(R.string.no_notes_matching),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 Text(
-                                    text = if (noteEntries.isEmpty()) "先去日期详情里写一条备注吧。" else "换个关键词、月份或时间范围试试。",
+                                    text = if (noteEntries.isEmpty()) stringResource(R.string.no_notes_hint) else stringResource(R.string.no_notes_filter_hint),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -284,8 +287,8 @@ fun NotesBottomSheet(
             val entry = showDeleteConfirmDialog!!
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = null },
-                title = { Text("删除确认") },
-                text = { Text("确定要删除 ${entry.date} 的这篇备注吗？") },
+                title = { Text(stringResource(R.string.delete_confirm_title)) },
+                text = { Text(stringResource(R.string.delete_note_confirm_message, entry.date)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -297,7 +300,7 @@ fun NotesBottomSheet(
                         },
                         modifier = Modifier.testTag("btn_dialog_confirm")
                     ) {
-                        Text("确定", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.confirm), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -305,7 +308,7 @@ fun NotesBottomSheet(
                         onClick = { showDeleteConfirmDialog = null },
                         modifier = Modifier.testTag("btn_dialog_cancel")
                     ) {
-                        Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             )
@@ -426,7 +429,7 @@ private fun NoteItemCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = entry.date.format(noteDateFormatter),
+                            text = entry.date.format(noteDateFormatter()),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                         )
@@ -451,7 +454,7 @@ private fun NoteItemCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Delete,
-                                    contentDescription = "删除备注",
+                                    contentDescription = stringResource(R.string.delete_note_cd),
                                     tint = Color(0xFFD32F2F),
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -474,13 +477,13 @@ private fun NoteItemCard(
             ) {
                 AssistChip(
                     onClick = onClick,
-                    label = { Text(entry.month.format(monthFormatter)) },
+                    label = { Text(entry.month.format(monthFormatter())) },
                 )
                 entry.shift?.let { shift ->
                     val palette = shift.color.palette()
                     AssistChip(
                         onClick = onClick,
-                        label = { Text(shift.name) },
+                        label = { Text(shift.displayName()) },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = palette.container,
                             labelColor = palette.content,
@@ -490,7 +493,7 @@ private fun NoteItemCard(
                 if (showLunar && entry.lunarLabel.isNotBlank()) {
                     AssistChip(
                         onClick = onClick,
-                        label = { Text("农历 ${entry.lunarLabel}") },
+                        label = { Text(stringResource(R.string.lunar_label_format, entry.lunarLabel)) },
                     )
                 }
 
@@ -516,7 +519,7 @@ private fun NoteItemCard(
                         val reminder = dateReminders.first()
                         "⏰ ${formatTime(reminder.scheduledAtMillis)} ${reminder.title}"
                     } else {
-                        "⏰ ${dateReminders.size}条提醒"
+                        stringResource(R.string.reminder_count_format, dateReminders.size)
                     }
 
                     AssistChip(

@@ -8,22 +8,21 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-val Context.themeDataStore by preferencesDataStore(name = "theme_preferences")
+val Context.languageDataStore by preferencesDataStore(name = "language_preferences")
 
-class ThemePreferences(private val context: Context) {
-    private val key = stringPreferencesKey("theme_mode")
+class LanguagePreferences(private val context: Context) {
+    private val key = stringPreferencesKey("language_mode")
 
-    val themeMode: Flow<ThemeMode> = context.themeDataStore.data
+    val languageMode: Flow<LanguageMode> = context.languageDataStore.data
         .map { preferences ->
             preferences[key]
-                ?.let(ThemeMode::valueOf)
-                ?: ThemeMode.SYSTEM
+                ?.let(LanguageMode::valueOf)
+                ?: LanguageMode.SYSTEM
         }
 
-    suspend fun setThemeMode(mode: ThemeMode) {
-        context.themeDataStore.edit { preferences ->
+    suspend fun setLanguageMode(mode: LanguageMode) {
+        context.languageDataStore.edit { preferences ->
             preferences[key] = mode.name
         }
     }
-
 }

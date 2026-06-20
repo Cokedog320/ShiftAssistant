@@ -1,0 +1,16 @@
+[
+  {
+    "year": 2026,
+    "holidays": [
+      { "name": "New Year's Day", "start": "2026-01-01", "end": "2026-01-01" },
+      { "name": "Valentine's Day", "start": "2026-02-14", "end": "2026-02-14" },
+      { "name": "Mother's Day", "start": "2026-05-10", "end": "2026-05-10" },
+      { "name": "Father's Day", "start": "2026-06-21", "end": "2026-06-21" },
+      { "name": "Halloween", "start": "2026-10-31", "end": "2026-10-31" },
+      { "name": "Thanksgiving", "start": "2026-11-26", "end": "2026-11-26" },
+      { "name": "Christmas Eve", "start": "2026-12-24", "end": "2026-12-24" },
+      { "name": "Christmas Day", "start": "2026-12-25", "end": "2026-12-25" }
+    ],
+    "workdays": []
+  }
+]
