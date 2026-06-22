@@ -12,24 +12,6 @@
 
 ### 最近更新 (🌟 Recent Updates)
 
-- 🧳 **日期详情页手动改班新增“出差”（橙色）**：
-  - 在点击日期后的手动改班区域新增“出差”选项，位于“休假”旁边，颜色为橙色，便于与常规班次和休假快速区分。
-  - 出差支持按天覆盖规律排班，并补充了对应的单元测试覆盖（含常量属性、覆盖优先级与调色板断言）。
-- 🎨 **主题三态切换（主页一键）与深色季节高对比优化**：
-  - 主页右上角主题按钮升级为三态循环：**跟随系统 → 浅色 → 深色**，并为三种模式提供不同图标（含“跟随系统”专属图标）。
-  - 季节强调色支持按明暗模式分别取值；在深色表面（底栏、今日圆圈、选中边框）使用提亮 accent，显著提升秋/冬主题可读性与对比度。
-- ✅ **UI 仪器化测试稳定性修复**：
-  - 修复 `CalendarUiTest` 中因持久化备注状态导致的用例间相互影响，消除全量跑偶发失败（单跑通过、全量偶发失败）问题。
-- 🗓️ **多方案排班管理与独立提醒隔离**：
-  - 引入了多套排班方案（Profiles）的创建、切换与删除功能，支持在主界面点击顶部栏标题快速拉起方案切换抽屉。
-  - 不同方案下的任务提醒进行按方案 ID 隔离，切换方案时仅显示和响应该方案的专属提醒，切换时系统闹钟自动重新注册。
-- 🔄 **全局备忘录共享与备份导入导出兼容**：
-  - 将原本分散在各排班方案中的每日备注迁移为“全局共享备注”，切换方案时备注依然保留，避免信息丢失。
-  - 增强了数据备份导入导出功能，完美兼容并智能合并老版本单方案备份和新版本多方案备份数据的合并与读取。
-- 👑 **主界面标题栏（Top Bar）对齐优化与纯净国际化**：
-  - 重构了主页标题栏，主标题直观展示当前处于活动状态的排班方案名，并利用对称平衡（Symmetric Spacer）技术在数学上实现了主标题文本的绝对动态居中，避免了下拉箭头带来的视觉偏斜。
-  - 移除了 UI 部分所有硬编码中文，整合入 `strings.xml` 进行完全国际化。
-  - `CalendarRepository` 彻底移除硬编码默认参数，规范化了生命周期与测试构造。
 - 🌐 **英文界面日期格式优化与六行布局适配**：
   - 顶栏月份由全称改为缩写（如 "September 2026" → "Sep 2026"），消除长月份名对右侧上/下月箭头的挤压。
   - 副标题月份标签保留全称（"September 2026"），兼顾视觉美观与紧凑性。
@@ -40,17 +22,14 @@
   - 在 `LaunchedEffect` 内加入相等判断，避免重复调用 `AppCompatDelegate.setApplicationLocales`。
 - 📌 **备忘录中心交互重构与置顶头部**：
   - **置顶头部标题栏**：固定了“备忘录中心”的标题与关闭按钮，无论列表如何滚动，用户随时可以方便地点击关闭或划走面板。
-  - **卡片直观勾选与删除**：在勾选某条备注左侧的复选框后，卡片右侧会动态显示删除（垃圾桶）按钮，点击可直接进行二次确认删除，无需像以前一样繁琐地滑回屏幕最顶端点击删除。
+  - **卡片直观勾选与删除**：保留了经典的复选框选中机制。用户在勾选某条备注左侧的复选框后，卡片右侧会动态显示删除（垃圾桶）按钮，点击可直接进行二次确认删除，无需像以前一样繁琐地滑回屏幕最顶端点击删除。
 - ⚡ **提醒保存瞬时返回（消除阻塞）**：
   - 移除了原有的同步等待 Compose Snackbar 消失（约 4 秒）与人为设定的延迟。
   - 引入了非阻塞的 Android 系统原生 `Toast` 提示反馈（在保存成功且存在权限异常时，自动调整为长提示）。
-  - 实现点击“保存”后 **0 毫秒延迟** 即刻返回日历主界面，而提示信息仍会悬浮在主屏幕下方。
-- 📅 **农历与节日标签清洗规范化**：
-  - 规范化了备忘录中心（Notes Center）列表卡片中的农历标签。重构为在单行内优雅地显示农历日期与对应的节日/节气（如 `二月十二 · 消费者权益日`），去除了冗余前缀。
+  - 实现点击“保存”后 **0 毫秒延迟** 即刻返回日历主界面，而提示信息仍会完美悬浮在主屏幕下方，提供了极佳的响应速度与交互连贯性。
 - 🧪 **完整单元测试与集成测试套件**：
-  - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 70+。
-  - 新增了对 `ChineseCalendarInfo.getCleanLunarLabel` 格式化转换器的全方位测试覆盖，包括普通日期、节气和公历节日场景。
-  - 新增了 `CalendarRepositoryTest` 覆盖序列化、默认缺省回退、设置/详细更新以及 roundtrip 数据的读写。包括 Room 数据库多版本迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言等。
+  - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 60+。
+  - 包括 Room 数据库多版本升迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
 
 ### 现在能做什么
 
@@ -105,24 +84,6 @@ This repository serves as a reliable, clean, and highly robust daily utility too
 
 ### 🌟 Recent Updates
 
-- 🧳 **Added “Business Trip” (Orange) to Manual Shift Override in Day Details**:
-  - Added a new **Business Trip** option in the manual shift section opened after tapping a date, next to **Vacation**, with an orange color for quick visual distinction.
-  - Business Trip supports per-day override over pattern shifts, with unit-test coverage for constant fields, override precedence, and palette assertions.
-- 🎨 **Tri-State Theme Toggle (Home Quick Switch) + Dark Season Contrast Upgrade**:
-  - Upgraded the top-right home theme button to a 3-state cycle: **System → Light → Dark**, with distinct icons for each mode (including a dedicated System icon).
-  - Season accents now support light/dark variants; dark surfaces (bottom bar, today badge, selected borders) use brighter accents for better readability, especially in Autumn/Winter themes.
-- ✅ **Instrumented UI Test Stability Fix**:
-  - Fixed state leakage across `CalendarUiTest` cases caused by persisted notes, removing flaky failures that appeared in full-suite runs.
-- 🗓️ **Multi-Profile Shift Management & Segregated Reminders**:
-  - Introduced creating, switching, and deleting multiple shift profiles. Users can tap the top bar title to invoke the profile switcher drawer.
-  - Reminders are now segregated by profile ID, ensuring that only reminders belonging to the active profile are displayed and scheduled via system alarms.
-- 🔄 **Global Notes & Backward-Compatible Backup/Restore**:
-  - Migrated profile-specific notes to a global structure, ensuring daily notes remain shared across profiles.
-  - Upgraded backup import/export code to seamlessly read and merge both legacy single-profile backups and new multi-profile JSON configurations.
-- 👑 **Top Bar Alignment Refactoring & Complete i18n**:
-  - Redesigned the home screen Top Bar: the main title displays the active profile name, while utilizing a Symmetric Spacer alignment technique to guarantee perfect visual centering regardless of text length.
-  - Removed all hardcoded Chinese strings inside UI layers, centralizing them in `strings.xml` for complete i18n.
-  - Removed default parameter hardcoding from the `CalendarRepository` constructor.
 - 🌐 **English Locale Date Format & Six-Row Layout Adjustments**:
   - Top bar month uses short abbreviation (e.g., "September 2026" → "Sep 2026") to prevent long month names from compressing the prev/next arrow buttons.
   - Subtitle month label retains full name ("September 2026") for visual aesthetics.
@@ -132,17 +93,15 @@ This repository serves as a reliable, clean, and highly robust daily utility too
   - Removed the `runBlocking` synchronous blocking read from `MainActivity.onCreate`, switching to `collectAsState` with the current system locale as the initial value for asynchronous loading, eliminating ANR risk on low-end devices.
   - Added an equality check inside `LaunchedEffect` to avoid redundant `AppCompatDelegate.setApplicationLocales` calls.
 - 📌 **Notes Center Layout & Deletion Interaction Refactoring**:
-  - **Sticky Top Bar**: Extracted the "Notes Center" title and close buttons outside the scrollable `LazyColumn` for easier access.
-  - **Localized Checked Deletion**: Checking a note card's left-side selector now dynamically reveals a red delete button on the card itself, enabling instant on-the-spot deletion.
+  - **Sticky Top Bar**: Extracted the "Notes Center" title and close buttons outside the scrollable `LazyColumn`. They are now pinned to the top of the BottomSheet, allowing users to close or dismiss the panel easily at any scroll offset.
+  - **Localized Checked Deletion**: Kept the classic checkbox selection flow. Checking a note card's left-side selector now dynamically reveals a red delete (trash) button on the card itself (to the left of the forward arrow). Users can confirm deletion on-the-spot without scrolling all the way back to the top of the sheet.
 - ⚡ **Instant Return on Save (Zero-Delay Navigation)**:
-  - Eliminated coroutine suspension blocks waiting for Snackbar dismissals.
-  - Replaced it with non-blocking Android system `Toast` messages.
-  - Save action now returns to the calendar main screen immediately with **0ms delay**.
-- 📅 **Clean Lunar & Holiday Label Formatting**:
-  - Cleaned up lunar holiday labels on note cards, rendering single-line combinations of lunar dates, terms, and holidays (e.g. `二月十二 · 消费者权益日`) without redundant prefixes.
+  - Eliminated the previous coroutine suspension block where the app had to wait for the Compose Snackbar to dismiss (~4 seconds) before navigating back.
+  - Replaced it with Android's system-level `Toast` (which automatically uses `LENGTH_LONG` for permission warnings and `LENGTH_SHORT` for normal saves).
+  - The edit screen now navigates back **with 0ms delay** as soon as the user taps "Save", while the Toast message floats smoothly on top of the destination screen.
 - 🧪 **Comprehensive Test Suite**:
-  - Built a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 70+ verified test cases.
-  - Features multi-version Room migration testing, local DataStore Preferences serialization validation (`CalendarRepositoryTest`), Turbine assertions, and Compose UI tests.
+  - Created a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 60+ verified test cases.
+  - Features multi-version Room migration testing, local DataStore Preferences serialization validation, Turbine-based `StateFlow` assertions, and end-to-end Compose UI test cases to guarantee zero regressions.
 
 ### Key Features
 
