@@ -375,7 +375,14 @@ private fun ShiftDefinition.monthGridLabel(): String = when (id) {
     "3" -> if (isEnglishAppLocale()) "Off" else "休"
     "vacation" -> if (isEnglishAppLocale()) "😎" else "假"
     "business_trip" -> if (isEnglishAppLocale()) "Trip" else "差"
-    else -> if (isEnglishAppLocale()) englishAbbreviation(name) else name.take(2)
+    else -> when (name) {
+        "白班" -> "白"
+        "夜班" -> "夜"
+        "休息" -> "休"
+        "休假" -> "假"
+        "出差" -> "差"
+        else -> if (isEnglishAppLocale()) englishAbbreviation(name) else name.take(1)
+    }
 }
 
 private fun englishAbbreviation(name: String): String {
