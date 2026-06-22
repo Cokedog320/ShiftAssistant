@@ -15,7 +15,7 @@ class ReminderAlertReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != AlarmReminderScheduler.ACTION_REMINDER_ALERT) return
 
-        val reminderId = intent?.getLongExtra(AlarmReminderScheduler.EXTRA_REMINDER_ID, -1L) ?: -1L
+        val reminderId = intent.getLongExtra(AlarmReminderScheduler.EXTRA_REMINDER_ID, -1L)
         if (reminderId <= 0L) return
 
         val pendingResult = goAsync()

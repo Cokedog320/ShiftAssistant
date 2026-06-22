@@ -39,7 +39,7 @@ import com.qiuye.calendarkotlin.ui.theme.LanguagePreferences
 import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 import com.qiuye.calendarkotlin.ui.theme.ThemePreferences
 import com.qiuye.calendarkotlin.ui.theme.resolve
-import kotlinx.coroutines.flow.first
+import com.qiuye.calendarkotlin.ui.theme.toLanguageMode
 import kotlinx.coroutines.launch
 import com.qiuye.calendarkotlin.viewmodel.CalendarViewModel
 import com.qiuye.calendarkotlin.tasks.TasksGraph
@@ -52,7 +52,6 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
 import com.qiuye.calendarkotlin.diary.ui.DiaryEditScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.runBlocking
 
 public class MainActivity : AppCompatActivity() {
     private val openReminderIdFlow = MutableStateFlow<Long?>(null)
@@ -65,8 +64,6 @@ public class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val initialLanguageMode = runBlocking { languagePreferences.languageMode.first() }
-        AppCompatDelegate.setApplicationLocales(initialLanguageMode.resolve())
         ChineseCalendarInfo.init(applicationContext)
         TasksGraph.initialize(applicationContext)
         
@@ -85,11 +82,16 @@ public class MainActivity : AppCompatActivity() {
 
         setContent {
             val themeMode by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
-            val languageMode by languagePreferences.languageMode.collectAsState(initial = initialLanguageMode)
+            val languageMode by languagePreferences.languageMode.collectAsState(
+                initial = AppCompatDelegate.getApplicationLocales().toLanguageMode()
+            )
             val isDark = themeMode.resolve(isSystemInDarkTheme())
 
             LaunchedEffect(languageMode) {
-                AppCompatDelegate.setApplicationLocales(languageMode.resolve())
+                val currentMode = AppCompatDelegate.getApplicationLocales().toLanguageMode()
+                if (currentMode != languageMode) {
+                    AppCompatDelegate.setApplicationLocales(languageMode.resolve())
+                }
             }
 
             CalendarKotlinTheme(darkTheme = isDark) {
