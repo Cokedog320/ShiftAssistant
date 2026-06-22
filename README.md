@@ -31,14 +31,6 @@
   - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 60+。
   - 包括 Room 数据库多版本升迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
 
-### 现在能做什么
-
-- **月历视图**：显示公历日期、农历信息（如初一、十五、二十四节气）以及法定节假日和补班标记（“休”/“班”）。
-- **智能排班标签**：将自适应排班标签平铺在日期单元格的左上角。在普通日子以饱满的“小印章”形式呈现，而在节假日时自动收缩避让。
-- **每日备注**：支持在点击特定日期后添加、修改或查看当天的备忘信息，底部圆点指示备注状态。
-- **备忘录搜索中心**：支持纯数字“免破折号”模糊搜索（如输入 `202605` 精准定位至 2026 年 5 月的备注）。
-- **定时提醒闹铃**：创建、编辑和删除定时提醒。在提醒时间到达时，即使应用处于后台或重启状态，也会通过系统闹铃和状态栏通知准时进行提示。
-
 ### 技术栈
 
 - **语言**: Kotlin
@@ -102,14 +94,6 @@ This repository serves as a reliable, clean, and highly robust daily utility too
 - 🧪 **Comprehensive Test Suite**:
   - Created a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 60+ verified test cases.
   - Features multi-version Room migration testing, local DataStore Preferences serialization validation, Turbine-based `StateFlow` assertions, and end-to-end Compose UI test cases to guarantee zero regressions.
-
-### Key Features
-
-- **Monthly Calendar Grid**: View Gregorian calendar days, Lunar dates, and statutory holiday tags (e.g. "休" / "班").
-- **Smart Shift Labels**: Adaptive stamp-style shift tags located in the top-left of each day cell. The font and padding automatically adjust to prevent overlapping with holiday tags.
-- **Daily Notes**: Write, view, or update quick text memos for any day.
-- **Searchable Notes Center**: Search historical notes with simple digits (e.g., searching `202605` or `20265` to find May 2026 memos).
-- **Alarm Alerter**: Schedule, edit, or delete reminders. Alarms are registered via the system scheduler and will trigger notifications even after device reboots.
 
 ### Tech Stack
 
