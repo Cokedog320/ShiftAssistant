@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qiuye.calendarkotlin.model.DayCell
+import com.qiuye.calendarkotlin.model.ShiftColorOption
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 import java.time.LocalDate
@@ -138,16 +139,40 @@ private fun DayCellCard(
                 verticalArrangement = if (isEnglish) Arrangement.Top else Arrangement.SpaceBetween,
             ) {
                 if (isEnglish) {
-                    // English: holiday tag on top (right-aligned), shift badge on bottom
+                    // English: festival emoji capsule + shift corner badge (festival days),
+                    // otherwise shift capsule. Unrecognized festivals fall back to top-right tag.
+                    val festivalEm = dayCell.holiday?.name?.let { festivalEmoji(it) }
+
+                    // Top row: shift corner badge (festival) OR holiday tag (unrecognized fallback)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(14.dp),
-                        contentAlignment = Alignment.TopEnd,
+                            .height(16.dp),
                     ) {
-                        if (dayCell.holiday != null) {
+                        if (festivalEm != null && dayCell.shift != null && shiftPalette != null) {
+                            // Festival + shift: shift label moves to top-left corner (mirrors Chinese layout)
                             Box(
                                 modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .clip(RoundedCornerShape(bottomEnd = 10.dp, topStart = 16.dp))
+                                    .background(shiftPalette.container)
+                                    .padding(horizontal = 5.5.dp, vertical = 1.5.dp),
+                            ) {
+                                Text(
+                                    text = dayCell.shift.monthGridLabel(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 10.5.sp,
+                                        lineHeight = 10.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    ),
+                                    color = shiftPalette.content,
+                                )
+                            }
+                        } else if (festivalEm == null && dayCell.holiday != null) {
+                            // Unrecognized festival: fall back to original top-right Off/Work tag
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
                                     .clip(RoundedCornerShape(bottomStart = 8.dp, topEnd = 10.dp))
                                     .background(
                                         if (isDark) {
@@ -196,8 +221,13 @@ private fun DayCellCard(
                     // Spacer between date number and shift badge
                     Spacer(modifier = Modifier.height(if (isCompact) 4.dp else 10.dp))
 
-                    // Shift badge capsule
-                    if (dayCell.shift != null && shiftPalette != null) {
+                    // Capsule: festival emoji (festival days) or shift abbreviation (normal days)
+                    if (festivalEm != null) {
+                        ShiftBadge(
+                            palette = shiftPalette ?: ShiftColorOption.GRAY.palette(isDark = isDark),
+                            text = festivalEm,
+                        )
+                    } else if (dayCell.shift != null && shiftPalette != null) {
                         ShiftBadge(
                             shift = dayCell.shift,
                             palette = shiftPalette,
@@ -402,10 +432,12 @@ private fun englishAbbreviation(name: String): String {
 
 @Composable
 private fun ShiftBadge(
-    shift: ShiftDefinition,
+    shift: ShiftDefinition? = null,
     palette: ShiftPalette,
+    text: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val displayText = text ?: shift?.monthGridLabel() ?: ""
     Surface(
         modifier = modifier
             .wrapContentWidth(Alignment.CenterHorizontally)
@@ -429,7 +461,7 @@ private fun ShiftBadge(
                     .background(palette.content.copy(alpha = 0.9f)),
             )
             Text(
-                text = shift.monthGridLabel(),
+                text = displayText,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall.copy(
