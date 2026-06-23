@@ -12,6 +12,11 @@
 
 ### 最近更新 (🌟 Recent Updates)
 
+- 🎉 **英文界面节日 Emoji 胶囊化**：
+  - 英文界面下，8 个西方传统节日（元旦 / 情人节 / 母亲节 / 父亲节 / 万圣节 / 感恩节 / 平安夜 / 圣诞节）的网格胶囊改为显示对应 Emoji，班次缩写移至左上角角标（与中文版样式一致）。
+  - 节日胶囊背景色沿用当天班次自身的配色，无班次日回退至中性灰。
+  - 未识别节日回退至原右上角 "Off" 小标签，信息不丢失。
+  - 中文界面零改动，详情页与备忘录页 `displayName()` 全称保持不变。
 - 🌐 **英文界面日期格式优化与六行布局适配**：
   - 顶栏月份由全称改为缩写（如 "September 2026" → "Sep 2026"），消除长月份名对右侧上/下月箭头的挤压。
   - 副标题月份标签保留全称（"September 2026"），兼顾视觉美观与紧凑性。
@@ -76,6 +81,11 @@ This repository serves as a reliable, clean, and highly robust daily utility too
 
 ### 🌟 Recent Updates
 
+- 🎉 **English Festival Emoji Capsules**:
+  - In the English locale, the 8 Western traditional festivals (New Year's Day / Valentine's Day / Mother's Day / Father's Day / Halloween / Thanksgiving / Christmas Eve / Christmas Day) now render their corresponding Emoji in the grid capsule, while the shift abbreviation moves to a top-left corner badge (mirroring the Chinese layout).
+  - Festival capsule background uses the shift's own palette for the day; shift-less days fall back to neutral gray.
+  - Unrecognized festivals fall back to the original top-right "Off" tag so no information is lost.
+  - Chinese locale is untouched; detail page and notes page `displayName()` full names remain unchanged.
 - 🌐 **English Locale Date Format & Six-Row Layout Adjustments**:
   - Top bar month uses short abbreviation (e.g., "September 2026" → "Sep 2026") to prevent long month names from compressing the prev/next arrow buttons.
   - Subtitle month label retains full name ("September 2026") for visual aesthetics.
