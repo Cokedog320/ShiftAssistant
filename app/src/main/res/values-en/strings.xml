@@ -74,7 +74,7 @@
     <string name="jump_to_date">Jump to Date</string>
 
     <!-- MonthHeader -->
-    <string name="view_schedule_by_month">View monthly schedule</string>
+    <string name="view_schedule_by_month">Monthly view</string>
     <string name="edit_selected_date">Edit selected date</string>
     <string name="prev_month">Previous month</string>
     <string name="next_month">Next month</string>
