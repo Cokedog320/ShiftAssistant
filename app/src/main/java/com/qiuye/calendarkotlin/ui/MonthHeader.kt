@@ -72,6 +72,7 @@ fun MonthHeader(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 16.dp),
                 )
             }
             Row(
