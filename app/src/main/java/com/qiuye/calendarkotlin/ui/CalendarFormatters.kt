@@ -6,7 +6,7 @@ import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 
 internal fun monthFormatter(): DateTimeFormatter = when {
     isEnglishAppLocale() -> DateTimeFormatter.ofPattern("MMM yyyy", Locale.ENGLISH)
-    else -> DateTimeFormatter.ofPattern("yyyy年 M月", Locale.CHINA)
+    else -> DateTimeFormatter.ofPattern("yyyy年M月", Locale.CHINA)
 }
 
 internal fun fullDateFormatter(): DateTimeFormatter = when {

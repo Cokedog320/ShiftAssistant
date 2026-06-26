@@ -268,8 +268,12 @@ class CalendarViewModel internal constructor(
             if (jsonObject.containsKey("profiles")) {
                 json.decodeFromString<CalendarData>(jsonString)
             } else {
-                val cycleStartDate = jsonObject["cycleStartDate"]?.let { json.decodeFromJsonElement<String?>(it) }
-                val cycleEndDate = jsonObject["cycleEndDate"]?.let { json.decodeFromJsonElement<String?>(it) }
+                val cycleStartDate = jsonObject["cycleStartDate"]
+                    ?.let { json.decodeFromJsonElement<String?>(it) }
+                    ?.takeIf { it.isNotBlank() }
+                val cycleEndDate = jsonObject["cycleEndDate"]
+                    ?.let { json.decodeFromJsonElement<String?>(it) }
+                    ?.takeIf { it.isNotBlank() }
                 val pattern = jsonObject["pattern"]?.let { json.decodeFromJsonElement<List<ShiftDefinition>>(it) } ?: defaultPattern
                 val notes = jsonObject["notes"]?.let { json.decodeFromJsonElement<Map<String, String>>(it) } ?: emptyMap()
                 val overrides = jsonObject["overrides"]?.let { json.decodeFromJsonElement<Map<String, ShiftDefinition>>(it) } ?: emptyMap()

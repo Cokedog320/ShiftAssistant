@@ -176,4 +176,39 @@ class CalendarCalculatorTest : BaseUnitTest() {
         assertNotEquals("出差", cellWithout.shift!!.name)
         assertEquals("出差", cellWith.shift!!.name)
     }
+
+    @Test
+    fun `buildMonthGrid should not crash when cycleStartDate is empty string`() {
+        val month = YearMonth.of(2024, 2)
+        val data = CalendarData(
+            cycleStartDate = "",
+            cycleEndDate = "",
+            pattern = defaultPattern,
+            showLunar = false,
+        )
+
+        val grid = CalendarCalculator.buildMonthGrid(month, data, null)
+
+        assertNotNull(grid)
+        assertTrue(grid.isNotEmpty())
+        val inMonth = grid.filter { it.date.monthValue == 2 }
+        assertTrue(inMonth.all { it.shift == null })
+    }
+
+    @Test
+    fun `getShiftForDate should not crash when single-shift pattern has empty cycleStartDate`() {
+        val singleShiftPattern = listOf(ShiftDefinition(id = "1", name = "白班", color = ShiftColorOption.BLUE))
+        val date = LocalDate.of(2024, 6, 15)
+        val data = CalendarData(
+            cycleStartDate = "",
+            cycleEndDate = "",
+            pattern = singleShiftPattern,
+            showLunar = false,
+        )
+
+        val shift = CalendarCalculator.getShiftForDate(date, data)
+
+        assertNotNull(shift)
+        assertEquals("白班", shift!!.name)
+    }
 }
