@@ -36,4 +36,11 @@ class BracketSpacingTest {
         assertEquals("方案(一)", normalizeProfileNameInput("方案\u00A0(一)\u00A0", maxLength = 5))
         assertEquals(null, normalizeProfileNameInput("方案名称太长了(一)", maxLength = 5))
     }
+
+    @Test
+    fun `converts full-width brackets to half-width so IME wont add spaces`() {
+        assertEquals("本班班次(二班)", normalizeProfileName("本班班次（二班）"))
+        assertEquals("方案[一]", normalizeProfileName("方案【一】"))
+        assertEquals("混合(测试)[OK]", normalizeProfileName("混合（测试）【OK】"))
+    }
 }
