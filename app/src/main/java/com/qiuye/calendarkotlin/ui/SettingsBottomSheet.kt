@@ -61,6 +61,7 @@ import com.qiuye.calendarkotlin.ui.theme.LanguageMode
 import com.qiuye.calendarkotlin.model.ShiftColorOption
 import com.qiuye.calendarkotlin.model.ShiftDefinition
 import com.qiuye.calendarkotlin.domain.normalizeProfileName
+import com.qiuye.calendarkotlin.domain.normalizeProfileNameInput
 import com.qiuye.calendarkotlin.model.defaultPattern
 import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 import java.util.UUID
@@ -247,9 +248,9 @@ fun SettingsBottomSheet(
 
                         OutlinedTextField(
                             value = profileName,
-onValueChange = {
-                                if (it.length <= 16) {
-                                    profileName = normalizeProfileName(it).trim()
+                            onValueChange = { value ->
+                                normalizeProfileNameInput(value, maxLength = 16)?.let { normalized ->
+                                    profileName = normalized
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().testTag("field_profile_name"),
@@ -526,9 +527,8 @@ private fun PatternEditorCard(
             }
             OutlinedTextField(
                 value = shift.name,
-                onValueChange = {
-                    if (it.length <= 20) {
-                        val normalizedName = normalizeProfileName(it)
+                onValueChange = { value ->
+                    normalizeProfileNameInput(value, maxLength = 20)?.let { normalizedName ->
                         val updatedShift =
                             if (shift.isBuiltInShift() && normalizedName != shift.name) {
                                 shift.copy(

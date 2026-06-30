@@ -349,23 +349,6 @@ private fun CalendarScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                        Row(
-                            modifier = Modifier.offset(x = (-4).dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = palette.icon,
-                                contentDescription = palette.name,
-                                tint = palette.accent,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = uiState.currentMonth.format(shortMonthFormatter()),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = palette.accent,
-                            )
-                        }
                     }
                 },
                 actions = {
@@ -479,6 +462,7 @@ private fun CalendarScreen(
                 MonthHeader(
                     month = uiState.currentMonth,
                     accentColor = palette.accent,
+                    seasonIcon = palette.icon,
                     isDark = isDark,
                     onPreviousMonth = {
                         coroutineScope.launch {

@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocalFlorist
-import androidx.compose.material.icons.rounded.WbSunny
+import androidx.compose.material.icons.rounded.Tsunami
 import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.AcUnit
 import com.qiuye.calendarkotlin.model.ShiftColorOption
@@ -27,7 +27,7 @@ private fun seasonPalette(monthValue: Int, isDark: Boolean): SeasonPalette =
         )
         in 6..8 -> SeasonPalette(
             "夏",
-            Icons.Rounded.WbSunny,
+            Icons.Rounded.Tsunami,
             if (isDark) Color(0xFF64B5F6) else Color(0xFF1769AA),
             listOf(Color(0xFFF2F8FF), Color(0xFFDCEEFF)),
         )
