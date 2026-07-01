@@ -27,7 +27,7 @@ class CalendarUiTest {
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
 
-    private val monthFormatter = DateTimeFormatter.ofPattern("yyyy年M月", Locale.CHINA)
+    private val monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM", Locale.CHINA)
 
     @Test
     fun pagerSwipeLeftMonthAdvances() {
@@ -305,4 +305,3 @@ class CalendarUiTest {
         rule.onNodeWithTag("diary_item_$today").assertDoesNotExist()
     }
 }
-

@@ -1,7 +1,6 @@
 package com.qiuye.calendarkotlin.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,20 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.DateRange
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.EditNote
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,7 +31,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.qiuye.calendarkotlin.R
@@ -54,8 +46,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import java.io.BufferedReader
@@ -262,26 +252,6 @@ private fun CalendarScreen(
     val handleToday = {
         onToday()
     }
-    val themeCdSystemToLight = stringResource(R.string.theme_cd_system_to_light)
-    val themeCdLightToDark = stringResource(R.string.theme_cd_light_to_dark)
-    val themeCdDarkToSystem = stringResource(R.string.theme_cd_dark_to_system)
-    val (themeIcon, themeDescription, nextThemeMode) = when (themeMode) {
-        ThemeMode.SYSTEM -> Triple(
-            Icons.Rounded.SettingsBrightness,
-            themeCdSystemToLight,
-            ThemeMode.LIGHT,
-        )
-        ThemeMode.LIGHT -> Triple(
-            Icons.Rounded.LightMode,
-            themeCdLightToDark,
-            ThemeMode.DARK,
-        )
-        ThemeMode.DARK -> Triple(
-            Icons.Rounded.DarkMode,
-            themeCdDarkToSystem,
-            ThemeMode.SYSTEM,
-        )
-    }
 
     LaunchedEffect(uiState.currentMonth) {
         val targetPage = monthToPage(uiState.currentMonth)
@@ -323,44 +293,13 @@ private fun CalendarScreen(
                     containerColor = Color.Transparent
                 ),
                 title = {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .clickable { onOpenProfileSelect() }
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .testTag("title_app_bar")
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Spacer(modifier = Modifier.size(20.dp))
-                            Text(
-                                text = uiState.calendarData.activeProfile.name,
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                            Icon(
-                                imageVector = Icons.Rounded.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.switch_profile),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
+                    CalendarTitleBar(
+                        accentColor = palette.accent,
+                        profileName = uiState.calendarData.activeProfile.name,
+                        onProfileClick = onOpenProfileSelect,
+                    )
                 },
                 actions = {
-                    IconButton(
-                        onClick = { onThemeModeChange(nextThemeMode) },
-                        modifier = Modifier.testTag("btn_theme_toggle"),
-                    ) {
-                        Icon(
-                            imageVector = themeIcon,
-                            contentDescription = themeDescription,
-                        )
-                    }
                     DateJumpButton(onDatePicked = onJumpToDate)
                     IconButton(
                         onClick = onOpenSettings,
@@ -463,19 +402,6 @@ private fun CalendarScreen(
                     month = uiState.currentMonth,
                     accentColor = palette.accent,
                     seasonIcon = palette.icon,
-                    isDark = isDark,
-                    onPreviousMonth = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage((pagerState.currentPage - 1).coerceAtLeast(0))
-                        }
-                    },
-                    onNextMonth = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(
-                                (pagerState.currentPage + 1).coerceAtMost(pagerPageCount - 1),
-                            )
-                        }
-                    },
                     onToday = handleToday,
                     onOpenSelectedDayDetail = onOpenSelectedDayDetail,
                     isDayDetailEnabled = uiState.selectedDate != null,
