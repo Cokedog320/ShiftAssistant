@@ -6,41 +6,39 @@
 
 ## 中文版
 
-一个功能完善的本地 Android 排班日历、日期备注与定时提醒应用。
+一个功能完善的本地 Android 排班日历、日期备注、日记与定时提醒应用。
 
-本项目旨在提供一个真实可用、结构清晰、逻辑严密的本地时间与日程管理工具，优先保证本地可用、提醒可靠、数据稳定。它集成了轮班管理、每日备忘、提醒闹铃等核心日常功能。
+本项目旨在提供一个真实可用、结构清晰、逻辑严密的本地时间与日程管理工具，优先保证本地可用、提醒可靠、数据稳定。它集成了轮班管理、每日备忘、心情日记、提醒闹铃等核心日常功能，完全离线运行，数据仅保存在本机。
+
+### 核心功能
+
+- **📅 排班日历**：自定义轮班周期与班次配色，支持多套排班方案（Profile）切换，一目了然地查看每日班次。
+- **🈺 农历与节假日**：内置农历换算、节气与法定节假日（休 / 班）标记，中文界面下自动显示。
+- **📝 日期备忘**：为任意日期添加备注，备忘录中心支持按年月分组浏览与快速删除。
+- **📖 心情日记**：记录每日心情与点滴，支持按日期查看、搜索与管理。
+- **⏰ 定时提醒**：基于系统精确闹钟（AlarmManager）的可靠提醒，支持开机 / 权限变更后自动恢复，并新增提醒归档与自动归档能力。
+- **🌗 主题与语言**：支持浅色 / 深色 / 跟随系统主题，以及中英文双语切换。
 
 ### 最近更新 (🌟 Recent Updates)
 
-- 🎉 **英文界面节日 Emoji 胶囊化**：
-  - 英文界面下，8 个西方传统节日（元旦 / 情人节 / 母亲节 / 父亲节 / 万圣节 / 感恩节 / 平安夜 / 圣诞节）的网格胶囊改为显示对应 Emoji，班次缩写移至左上角角标（与中文版样式一致）。
-  - 节日胶囊背景色沿用当天班次自身的配色，无班次日回退至中性灰。
-  - 未识别节日回退至原右上角 "Off" 小标签，信息不丢失。
-  - 中文界面零改动，详情页与备忘录页 `displayName()` 全称保持不变。
-- 🌐 **英文界面日期格式优化与六行布局适配**：
-  - 顶栏月份由全称改为缩写（如 "September 2026" → "Sep 2026"），消除长月份名对右侧上/下月箭头的挤压。
-  - 副标题月份标签保留全称（"September 2026"），兼顾视觉美观与紧凑性。
-  - 详情页由数字格式改为美式短格式 + 中点分隔星期（如 "2026-09-21 Sunday" → "Sep 21, 2026 · Sunday"）。
-  - 当月历恰好呈六行时，英文胶囊模式下自动收窄日期与胶囊间距（10dp → 4dp），避免底部提示点被挤压；五行及以下布局完全不变。
-- 🚀 **冷启动 ANR 风险修复**：
-  - 移除 `MainActivity.onCreate` 中的 `runBlocking` 同步阻塞读取，改用 `collectAsState` 以系统当前 locale 作初值异步加载，消除低端机 ANR 隐患。
-  - 在 `LaunchedEffect` 内加入相等判断，避免重复调用 `AppCompatDelegate.setApplicationLocales`。
-- 📌 **备忘录中心交互重构与置顶头部**：
-  - **置顶头部标题栏**：固定了“备忘录中心”的标题与关闭按钮，无论列表如何滚动，用户随时可以方便地点击关闭或划走面板。
-  - **卡片直观勾选与删除**：保留了经典的复选框选中机制。用户在勾选某条备注左侧的复选框后，卡片右侧会动态显示删除（垃圾桶）按钮，点击可直接进行二次确认删除，无需像以前一样繁琐地滑回屏幕最顶端点击删除。
-- ⚡ **提醒保存瞬时返回（消除阻塞）**：
-  - 移除了原有的同步等待 Compose Snackbar 消失（约 4 秒）与人为设定的延迟。
-  - 引入了非阻塞的 Android 系统原生 `Toast` 提示反馈（在保存成功且存在权限异常时，自动调整为长提示）。
-  - 实现点击“保存”后 **0 毫秒延迟** 即刻返回日历主界面，而提示信息仍会完美悬浮在主屏幕下方，提供了极佳的响应速度与交互连贯性。
-- 🧪 **完整单元测试与集成测试套件**：
-  - 构建了涵盖 Domain、Tasks、Data、ViewModel 和 UI 层的全面测试套件，测试总数已达到 60+。
-  - 包括 Room 数据库多版本升迁移测试、DataStore Preferences 本地文件持久化验证、ViewModel 状态流响应式 Turbine 断言，以及利用 Jetpack Compose Test 框架对底部栏、列表和搜索流进行的端到端 UI 验证。
+- 🚀 **冷启动零闪烁 / 零空白（SplashScreen 就绪门）**：
+  - 新增统一的启动屏“就绪门”，在主题、语言、排班数据、节假日、提醒、日记六类数据首次真实加载完成前保持启动屏（并带 800ms 超时兜底，绝不卡死）。
+  - 彻底消除了“浅色模式下先闪一下深色再切回”以及“主页面先空白、稍后才显示排班规律”的问题，冷启动第一帧即为完整、正确的界面。
+  - 农历 / 节假日 JSON 解析移出主线程，配合 `holidaysReady` 状态流在数据就绪后自动重组，避免首帧卡顿。
+- 📖 **日记保存交互优化**：
+  - 底部大号“保存日记”按钮改为右上角紧凑图标按钮；查看已有日记时与“删除”并排。
+  - 输入完成后保存对号变为实心圆底 + 白色对号，启用状态一眼可见；书写区域随之显著增大。
+- ⏰ **提醒归档功能**：
+  - 新增提醒归档 / 取消归档，以及基于保留期的自动归档清扫（Room 数据库迁移至 v5，新增 `isArchived` / `archivedAtMillis` 字段）。
+- 🧪 **测试与稳定性**：
+  - 修复并补充单元 / 仪器测试，全套 JVM 单元测试通过；覆盖 Room 多版本迁移、DataStore 持久化、ViewModel 状态流与 Compose UI 端到端验证。
 
 ### 技术栈
 
 - **语言**: Kotlin
 - **UI 框架**: Jetpack Compose, Material Design 3
 - **导航**: AndroidX Navigation
+- **启动屏**: AndroidX Core SplashScreen
 - **持久化**: Room Database (SQLite), DataStore Preferences
 - **调度器**: AlarmManager (系统精确定时器)
 - **构建工具**: Gradle Kotlin DSL
@@ -52,7 +50,20 @@
 - `viewmodel/`：日历主状态、响应式交互流
 - `data/`：日期备注、班次配置等 DataStore Preferences 数据处理
 - `domain/`：日期网格计算、农历换算与节假日匹配算法
-- `tasks/`：包含闹钟定时调度（AlarmManager）、系统状态栏通知（NotificationCompat）以及提醒的交互设计
+- `diary/`：心情日记的界面、ViewModel 与 Room 数据层
+- `tasks/`：闹钟定时调度（AlarmManager）、系统通知（NotificationCompat）、提醒归档以及提醒交互设计
+
+### 构建与打包
+
+**编译 Debug 包**:
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+**编译正式签名 Release 包**（需在项目根目录配置 `keystore.properties`）:
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+> 签名配置从项目根目录的 `keystore.properties` 读取（`storeFile` / `storePassword` / `keyAlias` / `keyPassword`），该文件与密钥库 `.jks` 均不应提交到版本库。
 
 ### 测试与验证
 
@@ -75,41 +86,39 @@
 
 ## English Version
 
-A fully-featured local Android ShiftAssistant application designed for shift rotation management, daily note taking, and scheduled reminder alerts.
+A fully-featured local Android app for shift rotation management, daily notes, mood journaling, and scheduled reminder alerts.
 
-This repository serves as a reliable, clean, and highly robust daily utility tool that prioritizes off-line usability, punctual alarm scheduling, and local data persistence.
+This repository serves as a reliable, clean, and highly robust daily utility that prioritizes off-line usability, punctual alarm scheduling, and local data persistence. It runs entirely offline, with all data stored only on the device.
+
+### Core Features
+
+- **📅 Shift Calendar**: Customize rotation cycles and shift colors, switch between multiple shift profiles, and see each day's shift at a glance.
+- **🈺 Lunar Calendar & Holidays**: Built-in lunar conversion, solar terms, and statutory holiday (Off / Work) markers, shown automatically in the Chinese locale.
+- **📝 Date Notes**: Attach notes to any date; the Notes Center supports year/month grouping and quick deletion.
+- **📖 Mood Journal**: Record your daily mood and thoughts, with view-by-date, search, and management.
+- **⏰ Scheduled Reminders**: Reliable reminders backed by exact system alarms (AlarmManager), with automatic restore after boot / permission changes, plus new reminder archiving and auto-archiving.
+- **🌗 Theme & Language**: Light / Dark / Follow-System themes and Chinese ⇄ English switching.
 
 ### 🌟 Recent Updates
 
-- 🎉 **English Festival Emoji Capsules**:
-  - In the English locale, the 8 Western traditional festivals (New Year's Day / Valentine's Day / Mother's Day / Father's Day / Halloween / Thanksgiving / Christmas Eve / Christmas Day) now render their corresponding Emoji in the grid capsule, while the shift abbreviation moves to a top-left corner badge (mirroring the Chinese layout).
-  - Festival capsule background uses the shift's own palette for the day; shift-less days fall back to neutral gray.
-  - Unrecognized festivals fall back to the original top-right "Off" tag so no information is lost.
-  - Chinese locale is untouched; detail page and notes page `displayName()` full names remain unchanged.
-- 🌐 **English Locale Date Format & Six-Row Layout Adjustments**:
-  - Top bar month uses short abbreviation (e.g., "September 2026" → "Sep 2026") to prevent long month names from compressing the prev/next arrow buttons.
-  - Subtitle month label retains full name ("September 2026") for visual aesthetics.
-  - Detail page switches from numeric format to American short format with a middot separator (e.g., "2026-09-21 Sunday" → "Sep 21, 2026 · Sunday").
-  - When the month grid renders exactly six rows, the English capsule layout automatically tightens the spacing between date number and capsule (10dp → 4dp) so status dots at the bottom are not squeezed; five-row and shorter layouts remain unchanged.
-- 🚀 **Cold-Start ANR Risk Fix**:
-  - Removed the `runBlocking` synchronous blocking read from `MainActivity.onCreate`, switching to `collectAsState` with the current system locale as the initial value for asynchronous loading, eliminating ANR risk on low-end devices.
-  - Added an equality check inside `LaunchedEffect` to avoid redundant `AppCompatDelegate.setApplicationLocales` calls.
-- 📌 **Notes Center Layout & Deletion Interaction Refactoring**:
-  - **Sticky Top Bar**: Extracted the "Notes Center" title and close buttons outside the scrollable `LazyColumn`. They are now pinned to the top of the BottomSheet, allowing users to close or dismiss the panel easily at any scroll offset.
-  - **Localized Checked Deletion**: Kept the classic checkbox selection flow. Checking a note card's left-side selector now dynamically reveals a red delete (trash) button on the card itself (to the left of the forward arrow). Users can confirm deletion on-the-spot without scrolling all the way back to the top of the sheet.
-- ⚡ **Instant Return on Save (Zero-Delay Navigation)**:
-  - Eliminated the previous coroutine suspension block where the app had to wait for the Compose Snackbar to dismiss (~4 seconds) before navigating back.
-  - Replaced it with Android's system-level `Toast` (which automatically uses `LENGTH_LONG` for permission warnings and `LENGTH_SHORT` for normal saves).
-  - The edit screen now navigates back **with 0ms delay** as soon as the user taps "Save", while the Toast message floats smoothly on top of the destination screen.
-- 🧪 **Comprehensive Test Suite**:
-  - Created a robust testing infrastructure covering Domain, Tasks, Data, ViewModels, and UI layers with 60+ verified test cases.
-  - Features multi-version Room migration testing, local DataStore Preferences serialization validation, Turbine-based `StateFlow` assertions, and end-to-end Compose UI test cases to guarantee zero regressions.
+- 🚀 **Flicker-Free, Blank-Free Cold Start (SplashScreen Ready-Gate)**:
+  - Added a unified splash "ready-gate" that keeps the splash screen up until theme, language, shift/calendar data, holidays, reminders, and diary data have all had their first real load (with an 800ms fallback so it never hangs).
+  - Completely eliminates the "dark flashes first then switches to light" issue and the "empty home screen, shift pattern appears a moment later" delay — the very first frame on cold start is complete and correct.
+  - Lunar/holiday JSON parsing moved off the main thread, with a `holidaysReady` state flow that recomposes once data is ready, avoiding first-frame jank.
+- 📖 **Diary Save Interaction Refinement**:
+  - The large bottom "Save Diary" button is replaced with a compact top-right icon button; when viewing an existing entry it sits next to "Delete".
+  - Once text is entered the save check becomes a filled accent circle with a white check for clear affordance, and the writing area grows noticeably larger.
+- ⏰ **Reminder Archiving**:
+  - Added archive / unarchive and a retention-based auto-archive sweep (Room database migrated to v5 with new `isArchived` / `archivedAtMillis` columns).
+- 🧪 **Testing & Stability**:
+  - Fixed and expanded unit / instrumentation tests; the full JVM unit test suite passes, covering multi-version Room migrations, DataStore persistence, ViewModel state flows, and end-to-end Compose UI verification.
 
 ### Tech Stack
 
 - **Language**: Kotlin
 - **UI Framework**: Jetpack Compose, Material Design 3
 - **Navigation**: AndroidX Navigation
+- **Splash**: AndroidX Core SplashScreen
 - **Persistence**: Room Database (SQLite), DataStore Preferences
 - **Scheduling**: AlarmManager (System Exact Timer)
 - **Build Tool**: Gradle Kotlin DSL
@@ -121,7 +130,20 @@ Core source files reside under `app/src/main/java/com/qiuye/calendarkotlin/`:
 - `viewmodel/`: Core state logic and user event mapping.
 - `data/`: Local cache managers and DataStore Preference configuration files.
 - `domain/`: Math calculators for monthly day grids, Lunar conversion tables, and statutory holiday rules.
-- `tasks/`: Scheduled reminders package covering alarm setup, Notification builders, and receiver boot restorations.
+- `diary/`: Mood journal UI, ViewModel, and Room data layer.
+- `tasks/`: Scheduled reminders package covering alarm setup, Notification builders, reminder archiving, and receiver boot restorations.
+
+### Building & Packaging
+
+**Build a debug APK**:
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+**Build a signed release APK** (requires `keystore.properties` in the project root):
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+> Signing config is read from `keystore.properties` in the project root (`storeFile` / `storePassword` / `keyAlias` / `keyPassword`). Neither this file nor the `.jks` keystore should be committed to version control.
 
 ### Running Tests
 
