@@ -263,9 +263,11 @@ class CalendarUiTest {
             rule.onAllNodesWithTag("screen_diary_edit").fetchSemanticsNodes().isEmpty()
         }
 
-        // 4. Open Diary Center again and verify the entry appears in the list
+        // 4. Open Diary Center again, expand current year/month, and verify the entry appears
         rule.onNodeWithTag("btn_diary").performClick()
         rule.waitForIdle()
+        rule.onNodeWithTag("diary_year_group_${today.year}").performClick()
+        rule.onNodeWithTag("diary_month_group_${today.format(DateTimeFormatter.ofPattern("yyyy年MM月"))}").performClick()
         rule.onNodeWithTag("diary_item_$today").assertIsDisplayed()
 
         // 5. Click the entry in the list to edit it
@@ -285,6 +287,8 @@ class CalendarUiTest {
         // 7. Verify updated content is displayed in Diary Center list
         rule.onNodeWithTag("btn_diary").performClick()
         rule.waitForIdle()
+        rule.onNodeWithTag("diary_year_group_${today.year}").performClick()
+        rule.onNodeWithTag("diary_month_group_${today.format(DateTimeFormatter.ofPattern("yyyy年MM月"))}").performClick()
         rule.onNodeWithTag("diary_item_$today").assertIsDisplayed()
 
         // 8. Open again and delete
@@ -302,6 +306,8 @@ class CalendarUiTest {
         // 9. Verify it goes back to empty state or is no longer listed
         rule.onNodeWithTag("btn_diary").performClick()
         rule.waitForIdle()
+        rule.onNodeWithTag("diary_year_group_${today.year}").performClick()
+        rule.onNodeWithTag("diary_month_group_${today.format(DateTimeFormatter.ofPattern("yyyy年MM月"))}").performClick()
         rule.onNodeWithTag("diary_item_$today").assertDoesNotExist()
     }
 }

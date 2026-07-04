@@ -64,4 +64,47 @@ class RoomMigrationTest : BaseUnitTest() {
         assertFalse(cursor.moveToFirst())
         cursor.close()
     }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        var db = helper.createDatabase(TEST_DB, 3)
+
+        db.execSQL(
+            """
+            INSERT INTO reminders (id, title, note, scheduledAtMillis, isCompleted, createdAtMillis, updatedAtMillis)
+            VALUES (1, 'Test V3', 'Note V3', 1000, 0, 100, 100)
+            """
+        )
+        db.close()
+
+        db = helper.runMigrationsAndValidate(TEST_DB, 4, true, ReminderDatabase.MIGRATION_3_4)
+
+        val cursor = db.query("SELECT * FROM reminders WHERE id = 1")
+        assertTrue(cursor.moveToFirst())
+        assertEquals("default", cursor.getString(cursor.getColumnIndexOrThrow("profileId")))
+        cursor.close()
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate4To5() {
+        var db = helper.createDatabase(TEST_DB, 4)
+
+        db.execSQL(
+            """
+            INSERT INTO reminders (id, title, note, scheduledAtMillis, isCompleted, createdAtMillis, updatedAtMillis, profileId)
+            VALUES (1, 'Test V4', 'Note V4', 1000, 0, 100, 100, 'default')
+            """
+        )
+        db.close()
+
+        db = helper.runMigrationsAndValidate(TEST_DB, 5, true, ReminderDatabase.MIGRATION_4_5)
+
+        val cursor = db.query("SELECT * FROM reminders WHERE id = 1")
+        assertTrue(cursor.moveToFirst())
+        assertEquals(0, cursor.getInt(cursor.getColumnIndexOrThrow("isArchived")))
+        assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("archivedAtMillis")))
+        cursor.close()
+    }
 }

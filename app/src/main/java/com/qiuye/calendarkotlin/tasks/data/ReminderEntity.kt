@@ -13,7 +13,9 @@ data class ReminderEntity(
     val isCompleted: Boolean,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
-    val profileId: String = "default"
+    val profileId: String = "default",
+    val isArchived: Boolean = false,
+    val archivedAtMillis: Long? = null
 )
 
 val ReminderEntity.localDate: java.time.LocalDate

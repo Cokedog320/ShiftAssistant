@@ -3,6 +3,12 @@
         <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <style name="Theme.CalendarKotlin.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#F4F7F6</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_calendar</item>
+        <item name="postSplashScreenTheme">@style/Theme.CalendarKotlin</item>
+    </style>
 </resources>
 
 

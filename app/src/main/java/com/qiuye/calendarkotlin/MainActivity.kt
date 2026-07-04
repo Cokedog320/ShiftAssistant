@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,6 +41,7 @@ import com.qiuye.calendarkotlin.ui.theme.ThemeMode
 import com.qiuye.calendarkotlin.ui.theme.ThemePreferences
 import com.qiuye.calendarkotlin.ui.theme.resolve
 import com.qiuye.calendarkotlin.ui.theme.toLanguageMode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.qiuye.calendarkotlin.viewmodel.CalendarViewModel
 import com.qiuye.calendarkotlin.tasks.TasksGraph
@@ -52,21 +54,104 @@ import com.qiuye.calendarkotlin.diary.ui.DiaryViewModel
 import com.qiuye.calendarkotlin.diary.ui.DiaryEditScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 public class MainActivity : AppCompatActivity() {
     private val openReminderIdFlow = MutableStateFlow<Long?>(null)
     private val themePreferences by lazy { ThemePreferences(applicationContext) }
     private val languagePreferences by lazy { LanguagePreferences(applicationContext) }
+    private val splashReadyState = MutableStateFlow(false)
 
     private val calendarViewModel by viewModels<CalendarViewModel> {
         CalendarViewModel.factory(applicationContext)
     }
+    private val tasksViewModel by viewModels<TasksViewModel> {
+        TasksViewModel.factory(applicationContext)
+    }
+    private val diaryViewModel by viewModels<DiaryViewModel> {
+        DiaryViewModel.factory(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition { !splashReadyState.value }
+
         super.onCreate(savedInstanceState)
-        ChineseCalendarInfo.init(applicationContext)
         TasksGraph.initialize(applicationContext)
-        
+
+        lifecycleScope.launch {
+            var themeLoaded = false
+            var languageLoaded = false
+            var calendarLoaded = false
+            var holidaysLoaded = false
+            var remindersLoaded = false
+            var diaryLoaded = false
+
+            fun tryReleaseSplash() {
+                if (themeLoaded && languageLoaded && calendarLoaded && holidaysLoaded && remindersLoaded && diaryLoaded) {
+                    splashReadyState.value = true
+                }
+            }
+
+            launch {
+                delay(800)
+                if (!splashReadyState.value) {
+                    splashReadyState.value = true
+                }
+            }
+
+            launch {
+                themePreferences.themeMode
+                    .map { true }
+                    .onStart { emit(false) }
+                    .collect { loaded ->
+                        themeLoaded = loaded
+                        tryReleaseSplash()
+                    }
+            }
+
+            launch {
+                languagePreferences.languageMode
+                    .map { true }
+                    .onStart { emit(false) }
+                    .collect { loaded ->
+                        languageLoaded = loaded
+                        tryReleaseSplash()
+                    }
+            }
+
+            launch {
+                calendarViewModel.isInitialLoaded.collect { loaded ->
+                    calendarLoaded = loaded
+                    tryReleaseSplash()
+                }
+            }
+
+            launch {
+                ChineseCalendarInfo.holidaysReady.collect { loaded ->
+                    holidaysLoaded = loaded
+                    tryReleaseSplash()
+                }
+            }
+
+            launch {
+                tasksViewModel.isInitialLoaded.collect { loaded ->
+                    remindersLoaded = loaded
+                    tryReleaseSplash()
+                }
+            }
+
+            launch {
+                diaryViewModel.isInitialLoaded.collect { loaded ->
+                    diaryLoaded = loaded
+                    tryReleaseSplash()
+                }
+            }
+        }
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
                 android.graphics.Color.TRANSPARENT,

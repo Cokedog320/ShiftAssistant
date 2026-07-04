@@ -23,7 +23,8 @@ class ReminderBootReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             runCatching {
-                TasksGraph.reminderService(context).restoreSchedules()
+                val service = TasksGraph.reminderService(context)
+                service.restoreSchedules()
             }.onFailure { e ->
                 Log.e("ReminderBootReceiver", "Failed to restore schedules on boot/permission change", e)
             }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.AlertDialog
@@ -40,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,17 +83,14 @@ fun NotesBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var keyword by remember { mutableStateOf("") }
-    var selectedMonth by remember { mutableStateOf<YearMonth?>(null) }
     var selectedScope by remember { mutableStateOf(NoteScope.ALL) }
     var selectedNoteEntry by remember { mutableStateOf<NoteEntry?>(null) }
     var showDeleteConfirmDialog by remember { mutableStateOf<NoteEntry?>(null) }
-    val months = remember(noteEntries) {
-        noteEntries.map { it.month }.distinct().sortedDescending()
-    }
+    var expandedYears by remember { mutableStateOf(setOf<Int>()) }
+    var expandedMonths by remember { mutableStateOf(setOf<YearMonth>()) }
     val recentCutoff = remember { LocalDate.now().minusDays(30) }
-    val filteredEntries = remember(noteEntries, keyword, selectedMonth, selectedScope, recentCutoff) {
+    val filteredEntries = remember(noteEntries, keyword, selectedScope, recentCutoff) {
         noteEntries.filter { entry ->
-            val monthMatches = selectedMonth == null || entry.month == selectedMonth
             val scopeMatches =
                 when (selectedScope) {
                     NoteScope.ALL -> true
@@ -105,7 +104,23 @@ fun NotesBottomSheet(
                     entry.month.format(noteMonthFormatter()).contains(keyword, ignoreCase = true) ||
                     entry.shift?.displayName()?.contains(keyword, ignoreCase = true) == true ||
                     entry.lunarLabel.contains(keyword, ignoreCase = true)
-            monthMatches && scopeMatches && keywordMatches
+            scopeMatches && keywordMatches
+        }
+    }
+    val currentMonth = remember { YearMonth.now() }
+    val monthGroups = remember(filteredEntries, currentMonth) {
+        buildMonthGroups(filteredEntries, currentMonth)
+    }
+    val yearGroups = remember(filteredEntries, currentMonth) {
+        buildYearGroups(filteredEntries, currentMonth)
+    }
+    LaunchedEffect(keyword, yearGroups, monthGroups, currentMonth) {
+        if (keyword.isBlank()) {
+            expandedYears = emptySet()
+            expandedMonths = emptySet()
+        } else {
+            expandedYears = yearGroups.map { it.year }.toSet()
+            expandedMonths = monthGroups.map { it.month }.toSet()
         }
     }
     val latestEntry = noteEntries.firstOrNull()
@@ -213,26 +228,19 @@ fun NotesBottomSheet(
                         modifier = Modifier.horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        FilterChip(
-                            selected = selectedMonth == null,
-                            onClick = { selectedMonth = null },
-                            label = { Text(stringResource(R.string.all_months)) },
-                        )
-                        months.forEach { month ->
-                            FilterChip(
-                                selected = selectedMonth == month,
-                                onClick = { selectedMonth = month },
-                                label = { Text(month.format(noteMonthFormatter())) },
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.46f),
+                            modifier = Modifier.testTag("note_all_years"),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.all_years),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                         }
                     }
-                }
-                item {
-                    Text(
-                        text = stringResource(R.string.total_notes_count, filteredEntries.size),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
                 if (filteredEntries.isEmpty()) {
                     item {
@@ -260,24 +268,61 @@ fun NotesBottomSheet(
                         }
                     }
                 } else {
-                    items(filteredEntries, key = { it.date.toString() }) { entry ->
-                        val isSelected = selectedNoteEntry?.date == entry.date
-                        NoteItemCard(
-                            entry = entry,
-                            showLunar = showLunar,
-                            reminders = reminders,
-                            accentColor = accentColor,
-                            isSelected = isSelected,
-                            onClick = {
-                                onSelectNoteDate(entry.date)
-                            },
-                            onSelectToggle = {
-                                selectedNoteEntry = if (isSelected) null else entry
-                            },
-                            onDeleteClick = {
-                                showDeleteConfirmDialog = entry
+                    yearGroups.forEach { yearGroup ->
+                        item(key = "note_year_header_${yearGroup.year}") {
+                            YearGroupHeader(
+                                year = yearGroup.year,
+                                expanded = expandedYears.contains(yearGroup.year),
+                                onToggle = {
+                                    expandedYears =
+                                        if (expandedYears.contains(yearGroup.year)) {
+                                            expandedYears - yearGroup.year
+                                        } else {
+                                            expandedYears + yearGroup.year
+                                        }
+                                },
+                            )
+                        }
+                        if (expandedYears.contains(yearGroup.year)) {
+                            yearGroup.months.forEach { group ->
+                                item(key = "note_group_header_${group.month}") {
+                                    MonthGroupHeader(
+                                        month = group.month,
+                                        count = group.entries.size,
+                                        expanded = expandedMonths.contains(group.month),
+                                        onToggle = {
+                                            expandedMonths =
+                                                if (expandedMonths.contains(group.month)) {
+                                                    expandedMonths - group.month
+                                                } else {
+                                                    expandedMonths + group.month
+                                                }
+                                        },
+                                    )
+                                }
+                                if (expandedMonths.contains(group.month)) {
+                                    items(group.entries, key = { it.date.toString() }) { entry ->
+                                        val isSelected = selectedNoteEntry?.date == entry.date
+                                        NoteItemCard(
+                                            entry = entry,
+                                            showLunar = showLunar,
+                                            reminders = reminders,
+                                            accentColor = accentColor,
+                                            isSelected = isSelected,
+                                            onClick = {
+                                                onSelectNoteDate(entry.date)
+                                            },
+                                            onSelectToggle = {
+                                                selectedNoteEntry = if (isSelected) null else entry
+                                            },
+                                            onDeleteClick = {
+                                                showDeleteConfirmDialog = entry
+                                            }
+                                        )
+                                    }
+                                }
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -339,6 +384,79 @@ private fun MemoStatCard(
                 text = value,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun YearGroupHeader(
+    year: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .testTag("note_year_group_$year"),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "$year",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MonthGroupHeader(
+    month: YearMonth,
+    count: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .testTag("note_group_${month.format(noteMonthFormatter())}"),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "${month.format(noteMonthFormatter())} · $count",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
             )
         }
     }
@@ -433,13 +551,6 @@ private fun NoteItemCard(
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                         )
-                        Text(
-                            text = entry.text,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -468,6 +579,17 @@ private fun NoteItemCard(
                         )
                     }
                 }
+            }
+
+            if (entry.text.isNotBlank()) {
+                Text(
+                    text = entry.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("note_content_${entry.date}"),
+                )
             }
 
             FlowRow(
@@ -570,6 +692,65 @@ private fun NoteItemCard(
                 }
             }
         }
+    }
+}
+
+private data class MonthNoteGroup(
+    val month: YearMonth,
+    val entries: List<NoteEntry>,
+)
+
+private data class YearNoteGroup(
+    val year: Int,
+    val months: List<MonthNoteGroup>,
+)
+
+private fun buildMonthGroups(
+    entries: List<NoteEntry>,
+    currentMonth: YearMonth,
+): List<MonthNoteGroup> {
+    val grouped = entries.groupBy { it.month }
+    val months = grouped.keys.sortedDescending()
+    val orderedMonths =
+        buildList {
+            if (grouped.containsKey(currentMonth)) {
+                add(currentMonth)
+            }
+            addAll(months.filterNot { it == currentMonth })
+        }
+    return orderedMonths.map { month ->
+        MonthNoteGroup(
+            month = month,
+            entries = grouped[month].orEmpty().sortedByDescending { it.date },
+        )
+    }
+}
+
+private fun buildYearGroups(
+    entries: List<NoteEntry>,
+    currentMonth: YearMonth,
+): List<YearNoteGroup> {
+    val entriesByYear = entries.groupBy { it.month.year }
+    return entriesByYear.keys.sortedDescending().map { year ->
+        val yearEntries = entriesByYear[year].orEmpty()
+        val groupedByMonth = yearEntries.groupBy { it.month }
+        val months = groupedByMonth.keys.sortedDescending()
+        val orderedMonths =
+            if (year == currentMonth.year && groupedByMonth.containsKey(currentMonth)) {
+                listOf(currentMonth) + months.filterNot { it == currentMonth }
+            } else {
+                months
+            }
+        YearNoteGroup(
+            year = year,
+            months =
+                orderedMonths.map { month ->
+                    MonthNoteGroup(
+                        month = month,
+                        entries = groupedByMonth[month].orEmpty().sortedByDescending { it.date },
+                    )
+                },
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 package com.qiuye.calendarkotlin.diary.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -15,14 +16,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +36,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import com.qiuye.calendarkotlin.R
 import com.qiuye.calendarkotlin.diary.data.DiaryEntity
 import com.qiuye.calendarkotlin.ui.fullDateFormatter
+import com.qiuye.calendarkotlin.ui.noteMonthFormatter
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -66,6 +74,25 @@ fun DiaryListBottomSheet(
 
     val displayedEntries = remember(entries, searchQuery, searchResults) {
         if (searchQuery.isBlank()) entries else searchResults
+    }
+
+    var expandedYears by remember { mutableStateOf(setOf<Int>()) }
+    var expandedMonths by remember { mutableStateOf(setOf<YearMonth>()) }
+    val currentMonth = remember { YearMonth.now() }
+    val monthGroups = remember(displayedEntries, currentMonth) {
+        buildDiaryMonthGroups(displayedEntries, currentMonth)
+    }
+    val yearGroups = remember(displayedEntries, currentMonth) {
+        buildDiaryYearGroups(displayedEntries, currentMonth)
+    }
+    LaunchedEffect(searchQuery, yearGroups, monthGroups, currentMonth) {
+        if (searchQuery.isBlank()) {
+            expandedYears = emptySet()
+            expandedMonths = emptySet()
+        } else {
+            expandedYears = yearGroups.map { it.year }.toSet()
+            expandedMonths = monthGroups.map { it.month }.toSet()
+        }
     }
 
     val totalCount = entries.size
@@ -177,6 +204,27 @@ fun DiaryListBottomSheet(
                 )
             }
 
+            // All Years label
+            item {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.46f),
+                        modifier = Modifier.testTag("diary_all_years"),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.all_years),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                }
+            }
+
             // Entries List
             if (displayedEntries.isEmpty()) {
                 item {
@@ -204,19 +252,129 @@ fun DiaryListBottomSheet(
                     }
                 }
             } else {
-                items(displayedEntries, key = { it.id }) { entry ->
-                    DiaryItemCard(
-                        entry = entry,
-                        onClick = {
-                            coroutineScope.launch {
-                                sheetState.hide()
-                                val parsedDate = LocalDate.parse(entry.dateKey)
-                                onSelectDate(parsedDate)
+                yearGroups.forEach { yearGroup ->
+                    item(key = "diary_year_header_${yearGroup.year}") {
+                        YearGroupHeader(
+                            year = yearGroup.year,
+                            expanded = expandedYears.contains(yearGroup.year),
+                            onToggle = {
+                                expandedYears =
+                                    if (expandedYears.contains(yearGroup.year)) {
+                                        expandedYears - yearGroup.year
+                                    } else {
+                                        expandedYears + yearGroup.year
+                                    }
+                            },
+                        )
+                    }
+                    if (expandedYears.contains(yearGroup.year)) {
+                        yearGroup.months.forEach { group ->
+                            item(key = "diary_month_header_${group.month}") {
+                                MonthGroupHeader(
+                                    month = group.month,
+                                    count = group.entries.size,
+                                    expanded = expandedMonths.contains(group.month),
+                                    onToggle = {
+                                        expandedMonths =
+                                            if (expandedMonths.contains(group.month)) {
+                                                expandedMonths - group.month
+                                            } else {
+                                                expandedMonths + group.month
+                                            }
+                                    },
+                                )
+                            }
+                            if (expandedMonths.contains(group.month)) {
+                                items(group.entries, key = { it.id }) { entry ->
+                                    DiaryItemCard(
+                                        entry = entry,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                sheetState.hide()
+                                                val parsedDate = LocalDate.parse(entry.dateKey)
+                                                onSelectDate(parsedDate)
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
-                    )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun YearGroupHeader(
+    year: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .testTag("diary_year_group_$year"),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "$year",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MonthGroupHeader(
+    month: YearMonth,
+    count: Int,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .testTag("diary_month_group_${month.format(noteMonthFormatter())}"),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "${month.format(noteMonthFormatter())} · $count",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
+            )
         }
     }
 }
@@ -301,5 +459,68 @@ private fun DiaryItemCard(
                 modifier = Modifier.size(16.dp)
             )
         }
+    }
+}
+
+private data class DiaryMonthGroup(
+    val month: YearMonth,
+    val entries: List<DiaryEntity>,
+)
+
+private data class DiaryYearGroup(
+    val year: Int,
+    val months: List<DiaryMonthGroup>,
+)
+
+private fun DiaryEntity.toYearMonth(): YearMonth {
+    return YearMonth.parse(dateKey.substring(0, 7))
+}
+
+private fun buildDiaryMonthGroups(
+    entries: List<DiaryEntity>,
+    currentMonth: YearMonth,
+): List<DiaryMonthGroup> {
+    val grouped = entries.groupBy { it.toYearMonth() }
+    val months = grouped.keys.sortedDescending()
+    val orderedMonths =
+        buildList {
+            if (grouped.containsKey(currentMonth)) {
+                add(currentMonth)
+            }
+            addAll(months.filterNot { it == currentMonth })
+        }
+    return orderedMonths.map { month ->
+        DiaryMonthGroup(
+            month = month,
+            entries = grouped[month].orEmpty().sortedByDescending { it.dateKey },
+        )
+    }
+}
+
+private fun buildDiaryYearGroups(
+    entries: List<DiaryEntity>,
+    currentMonth: YearMonth,
+): List<DiaryYearGroup> {
+    val entriesByYear = entries.groupBy { it.toYearMonth().year }
+    return entriesByYear.keys.sortedDescending().map { year ->
+        val yearEntries = entriesByYear[year].orEmpty()
+        val groupedByMonth = yearEntries.groupBy { it.toYearMonth() }
+        val months = groupedByMonth.keys.sortedDescending()
+        val orderedMonths =
+            if (year == currentMonth.year && groupedByMonth.containsKey(currentMonth)) {
+                listOf(currentMonth) + months.filterNot { it == currentMonth }
+            } else {
+                months
+            }
+        DiaryYearGroup(
+            year = year,
+            months =
+                orderedMonths.map { month ->
+                    DiaryMonthGroup(
+                        month = month,
+                        entries = groupedByMonth[month].orEmpty().sortedByDescending { it.dateKey },
+                    )
+                },
+        )
     }
 }

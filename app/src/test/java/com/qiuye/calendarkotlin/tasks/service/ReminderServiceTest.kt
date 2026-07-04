@@ -363,6 +363,149 @@ class ReminderServiceTest : BaseUnitTest() {
         assertTrue(result is SaveReminderResult.ValidationError)
     }
 
+    @Test
+    fun runAutoArchiveSweep_archivesCompletedRemindersOlderThanRetention() = runBlocking {
+        val now = System.currentTimeMillis()
+        val retentionMillis = 30 * 24 * 60 * 60 * 1000L
+        val oldCompletedId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Old completed",
+                note = "",
+                scheduledAtMillis = now - retentionMillis - 60_000,
+                isCompleted = true,
+                createdAtMillis = now - retentionMillis - 120_000,
+                updatedAtMillis = now - retentionMillis - 60_000
+            )
+        )
+        val recentCompletedId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Recent completed",
+                note = "",
+                scheduledAtMillis = now - 60_000,
+                isCompleted = true,
+                createdAtMillis = now - 120_000,
+                updatedAtMillis = now - 60_000
+            )
+        )
+
+        service.runAutoArchiveSweep("default", retentionDays = 30)
+
+        assertTrue(repository.getById(oldCompletedId)!!.isArchived)
+        assertFalse(repository.getById(recentCompletedId)!!.isArchived)
+    }
+
+    @Test
+    fun runAutoArchiveSweep_archivesOverdueUncompletedRemindersOlderThanRetention() = runBlocking {
+        val now = System.currentTimeMillis()
+        val retentionMillis = 30 * 24 * 60 * 60 * 1000L
+        val oldOverdueId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Old overdue",
+                note = "",
+                scheduledAtMillis = now - retentionMillis - 60_000,
+                isCompleted = false,
+                createdAtMillis = now - retentionMillis - 120_000,
+                updatedAtMillis = now - retentionMillis - 120_000
+            )
+        )
+        val recentOverdueId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Recent overdue",
+                note = "",
+                scheduledAtMillis = now - 60_000,
+                isCompleted = false,
+                createdAtMillis = now - 120_000,
+                updatedAtMillis = now - 120_000
+            )
+        )
+
+        service.runAutoArchiveSweep("default", retentionDays = 30)
+
+        assertTrue(repository.getById(oldOverdueId)!!.isArchived)
+        assertFalse(repository.getById(recentOverdueId)!!.isArchived)
+    }
+
+    @Test
+    fun runAutoArchiveSweep_doesNotArchiveAlreadyArchivedItems() = runBlocking {
+        val now = System.currentTimeMillis()
+        val retentionMillis = 30 * 24 * 60 * 60 * 1000L
+        val archivedId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Already archived",
+                note = "",
+                scheduledAtMillis = now - retentionMillis - 60_000,
+                isCompleted = true,
+                createdAtMillis = now - retentionMillis - 120_000,
+                updatedAtMillis = now - retentionMillis - 60_000,
+                isArchived = true,
+                archivedAtMillis = now - retentionMillis
+            )
+        )
+
+        service.runAutoArchiveSweep("default", retentionDays = 30)
+
+        val archived = repository.getById(archivedId)!!
+        assertTrue(archived.isArchived)
+        assertEquals(now - retentionMillis, archived.archivedAtMillis)
+    }
+
+    @Test
+    fun runAutoArchiveSweep_respectsProfileScope() = runBlocking {
+        val now = System.currentTimeMillis()
+        val retentionMillis = 30 * 24 * 60 * 60 * 1000L
+        val otherProfileId = "other"
+        val otherProfileOldCompletedId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Other profile old completed",
+                note = "",
+                scheduledAtMillis = now - retentionMillis - 60_000,
+                isCompleted = true,
+                createdAtMillis = now - retentionMillis - 120_000,
+                updatedAtMillis = now - retentionMillis - 60_000,
+                profileId = otherProfileId
+            )
+        )
+
+        service.runAutoArchiveSweep("default", retentionDays = 30)
+
+        assertFalse(repository.getById(otherProfileOldCompletedId)!!.isArchived)
+
+        service.runAutoArchiveSweep(otherProfileId, retentionDays = 30)
+
+        assertTrue(repository.getById(otherProfileOldCompletedId)!!.isArchived)
+    }
+
+    @Test
+    fun unarchiveReminder_restoresArchivedItem() = runBlocking {
+        val now = System.currentTimeMillis()
+        val archivedId = repository.insert(
+            ReminderEntity(
+                id = 0,
+                title = "Archived",
+                note = "",
+                scheduledAtMillis = now - 60_000,
+                isCompleted = true,
+                createdAtMillis = now - 120_000,
+                updatedAtMillis = now - 60_000,
+                isArchived = true,
+                archivedAtMillis = now
+            )
+        )
+
+        service.unarchiveReminder(archivedId)
+
+        val restored = repository.getById(archivedId)!!
+        assertFalse(restored.isArchived)
+        assertEquals(null, restored.archivedAtMillis)
+        assertTrue(restored.isCompleted)
+    }
+
     private class RecordingScheduler : ReminderScheduler {
         val scheduleCalls = CopyOnWriteArrayList<ReminderEntity>()
         val rescheduleCalls = CopyOnWriteArrayList<ReminderEntity>()

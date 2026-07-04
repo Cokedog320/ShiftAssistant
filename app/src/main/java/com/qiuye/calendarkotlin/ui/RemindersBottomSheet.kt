@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Unarchive
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
@@ -72,16 +73,19 @@ private enum class ReminderScope {
     PENDING,
     COMPLETED,
     OVERDUE,
+    ARCHIVED,
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RemindersBottomSheet(
     reminders: List<ReminderEntity>,
+    archivedReminders: List<ReminderEntity> = emptyList(),
     isDark: Boolean = false,
     onDismiss: () -> Unit,
     onToggleReminder: (ReminderEntity) -> Unit,
     onDeleteReminder: (ReminderEntity) -> Unit,
+    onUnarchiveReminder: (ReminderEntity) -> Unit = {},
     onOpenReminder: (ReminderEntity) -> Unit,
     onJumpToDate: (LocalDate) -> Unit,
     onAddReminder: () -> Unit,
@@ -94,8 +98,8 @@ fun RemindersBottomSheet(
     
     val now = remember(reminders) { System.currentTimeMillis() }
     
-    val months = remember(reminders) {
-        reminders.map { reminder ->
+    val months = remember(reminders, archivedReminders) {
+        (reminders + archivedReminders).map { reminder ->
             val localDate = java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
                 .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
                 .toLocalDate()
@@ -103,30 +107,51 @@ fun RemindersBottomSheet(
         }.distinct().sortedDescending()
     }
     
-    val filteredReminders = remember(reminders, keyword, selectedMonth, selectedScope, now) {
+    val activeFilteredReminders = remember(reminders, keyword, selectedMonth, selectedScope, now) {
         reminders.filter { reminder ->
             val reminderLocalDate = java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
                 .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
                 .toLocalDate()
-            
+
             val monthMatches = selectedMonth == null || YearMonth.from(reminderLocalDate) == selectedMonth
-            
+
             val scopeMatches = when (selectedScope) {
                 ReminderScope.ALL -> true
                 ReminderScope.PENDING -> !reminder.isCompleted && reminder.scheduledAtMillis > now
                 ReminderScope.COMPLETED -> reminder.isCompleted
                 ReminderScope.OVERDUE -> !reminder.isCompleted && reminder.scheduledAtMillis <= now
+                ReminderScope.ARCHIVED -> false
             }
-            
+
             val keywordMatches = keyword.isBlank() ||
                 reminder.title.contains(keyword, ignoreCase = true) ||
                 reminder.note.contains(keyword, ignoreCase = true) ||
                 dateMatchesKeyword(reminderLocalDate, keyword)
-                
+
             monthMatches && scopeMatches && keywordMatches
         }
     }
-    
+
+    val archivedFilteredReminders = remember(archivedReminders, keyword, selectedMonth, selectedScope) {
+        if (selectedScope != ReminderScope.ARCHIVED) emptyList()
+        else archivedReminders.filter { reminder ->
+            val reminderLocalDate = java.time.Instant.ofEpochMilli(reminder.scheduledAtMillis)
+                .atZone(com.qiuye.calendarkotlin.tasks.data.zoneIdProvider())
+                .toLocalDate()
+
+            val monthMatches = selectedMonth == null || YearMonth.from(reminderLocalDate) == selectedMonth
+
+            val keywordMatches = keyword.isBlank() ||
+                reminder.title.contains(keyword, ignoreCase = true) ||
+                reminder.note.contains(keyword, ignoreCase = true) ||
+                dateMatchesKeyword(reminderLocalDate, keyword)
+
+            monthMatches && keywordMatches
+        }
+    }
+
+    val filteredReminders = if (selectedScope == ReminderScope.ARCHIVED) archivedFilteredReminders else activeFilteredReminders
+
     val totalCount = reminders.size
     val pendingCount = remember(reminders, now) {
         reminders.count { !it.isCompleted && it.scheduledAtMillis > now }
@@ -235,6 +260,7 @@ fun RemindersBottomSheet(
                                     ReminderScope.PENDING -> stringResource(R.string.reminder_scope_pending)
                                     ReminderScope.COMPLETED -> stringResource(R.string.completed)
                                     ReminderScope.OVERDUE -> stringResource(R.string.reminder_scope_overdue)
+                                    ReminderScope.ARCHIVED -> stringResource(R.string.reminder_scope_archived)
                                 })
                             },
                         )
@@ -307,9 +333,11 @@ fun RemindersBottomSheet(
                 }
             } else {
                 items(filteredReminders, key = { it.id }) { reminder ->
+                    val isArchived = reminder.isArchived
                     ReminderItemCard(
                         reminder = reminder,
                         isDark = isDark,
+                        isArchived = isArchived,
                         onClick = {
                             coroutineScope.launch {
                                 sheetState.hide()
@@ -318,6 +346,7 @@ fun RemindersBottomSheet(
                         },
                         onToggleCompleted = { onToggleReminder(reminder) },
                         onDelete = { onDeleteReminder(reminder) },
+                        onUnarchive = { onUnarchiveReminder(reminder) },
                         onJumpToDate = {
                             coroutineScope.launch {
                                 sheetState.hide()
@@ -368,9 +397,11 @@ private fun ReminderStatCard(
 private fun ReminderItemCard(
     reminder: ReminderEntity,
     isDark: Boolean,
+    isArchived: Boolean = false,
     onClick: () -> Unit,
     onToggleCompleted: () -> Unit,
     onDelete: () -> Unit,
+    onUnarchive: () -> Unit = {},
     onJumpToDate: () -> Unit,
 ) {
     val now = remember { System.currentTimeMillis() }
@@ -401,7 +432,7 @@ private fun ReminderItemCard(
                         .size(26.dp)
                         .clip(CircleShape)
                         .background(if (reminder.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-                        .clickable { onToggleCompleted() },
+                        .then(if (isArchived) Modifier else Modifier.clickable { onToggleCompleted() }),
                     contentAlignment = Alignment.Center
                 ) {
                     if (reminder.isCompleted) {
@@ -470,6 +501,17 @@ private fun ReminderItemCard(
                             onClick = onJumpToDate,
                             label = { Text(stringResource(R.string.view_date_cd), style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.height(24.dp)
+                        )
+                    }
+                }
+
+                if (isArchived) {
+                    IconButton(onClick = onUnarchive) {
+                        Icon(
+                            imageVector = Icons.Filled.Unarchive,
+                            contentDescription = stringResource(R.string.unarchive_reminder),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

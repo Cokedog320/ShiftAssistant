@@ -18,12 +18,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class TasksViewModel internal constructor(
     private val service: ReminderService,
     private val calendarRepository: CalendarDataStore,
 ) : ViewModel() {
+    private val _isInitialLoaded = MutableStateFlow(false)
+    val isInitialLoaded = _isInitialLoaded.asStateFlow()
 
     val reminders = calendarRepository.calendarData
         .map { it.activeProfileId }
@@ -38,6 +43,20 @@ class TasksViewModel internal constructor(
                     .thenBy { it.scheduledAtMillis }
                     .thenByDescending { it.updatedAtMillis }
             )
+        }
+        .onEach {
+            _isInitialLoaded.value = true
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val archivedReminders = calendarRepository.calendarData
+        .map { it.activeProfileId }
+        .distinctUntilChanged()
+        .flatMapLatest { profileId ->
+            service.observeArchivedReminders(profileId)
+        }
+        .map { reminders ->
+            reminders.sortedByDescending { it.archivedAtMillis ?: it.updatedAtMillis }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -65,6 +84,10 @@ class TasksViewModel internal constructor(
 
     suspend fun deleteReminder(reminderId: Long) {
         service.deleteReminder(reminderId)
+    }
+
+    suspend fun unarchiveReminder(reminderId: Long) {
+        service.unarchiveReminder(reminderId)
     }
 
     suspend fun rebuildSchedules() {

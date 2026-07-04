@@ -89,6 +89,7 @@ fun CalendarRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val reminders by tasksViewModel.reminders.collectAsStateWithLifecycle()
+    val archivedReminders by tasksViewModel.archivedReminders.collectAsStateWithLifecycle()
     val diaryDateKeys by diaryViewModel.diaryDateKeys.collectAsStateWithLifecycle()
     val diaryEntries by diaryViewModel.allEntries.collectAsStateWithLifecycle()
     val diarySearchQuery by diaryViewModel.searchQuery.collectAsStateWithLifecycle()
@@ -116,6 +117,7 @@ fun CalendarRoute(
         viewModel = viewModel,
         uiState = uiState,
         reminders = reminders,
+        archivedReminders = archivedReminders,
         diaryDateKeys = diaryDateKeys,
         diaryEntries = diaryEntries,
         diarySearchQuery = diarySearchQuery,
@@ -170,6 +172,11 @@ fun CalendarRoute(
                 tasksViewModel.deleteReminder(reminder.id)
             }
         },
+        onUnarchiveTask = { reminder ->
+            coroutineScope.launch {
+                tasksViewModel.unarchiveReminder(reminder.id)
+            }
+        },
         onNavigateToEditTask = { reminder ->
             onNavigateToEditTask(reminder.id)
         },
@@ -191,6 +198,7 @@ private fun CalendarScreen(
     viewModel: CalendarViewModel,
     uiState: CalendarUiState,
     reminders: List<com.qiuye.calendarkotlin.tasks.data.ReminderEntity>,
+    archivedReminders: List<com.qiuye.calendarkotlin.tasks.data.ReminderEntity>,
     diaryDateKeys: Set<String>,
     diaryEntries: List<com.qiuye.calendarkotlin.diary.data.DiaryEntity>,
     diarySearchQuery: String,
@@ -225,6 +233,7 @@ private fun CalendarScreen(
     onJumpToDate: (java.time.LocalDate) -> Unit,
     onToggleTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
     onDeleteTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
+    onUnarchiveTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
     onNavigateToEditTask: (com.qiuye.calendarkotlin.tasks.data.ReminderEntity) -> Unit,
     onNavigateToNewTaskWithDate: (java.time.LocalDate) -> Unit,
     onAddNewReminder: () -> Unit,
@@ -484,10 +493,12 @@ private fun CalendarScreen(
             } else if (uiState.isRemindersVisible) {
                 RemindersBottomSheet(
                     reminders = reminders,
+                    archivedReminders = archivedReminders,
                     isDark = isDark,
                     onDismiss = onCloseRemindersCenter,
                     onToggleReminder = onToggleTask,
                     onDeleteReminder = onDeleteTask,
+                    onUnarchiveReminder = onUnarchiveTask,
                     onOpenReminder = { reminder ->
                         onCloseRemindersCenter()
                         onNavigateToEditTask(reminder)

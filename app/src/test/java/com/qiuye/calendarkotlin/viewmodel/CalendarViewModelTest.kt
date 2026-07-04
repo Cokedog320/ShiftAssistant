@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import com.qiuye.calendarkotlin.domain.ChineseCalendarInfo
 import com.qiuye.calendarkotlin.model.ShiftProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -22,6 +23,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,6 +33,44 @@ class CalendarViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Before
+    fun setUp() {
+        ChineseCalendarInfo.markHolidaysReadyForTesting()
+    }
+
+    @Test
+    fun initialStateSelectsTodayFromClock() = runTest {
+        val repository = FakeCalendarDataStore(CalendarData(showLunar = false))
+        val viewModel = CalendarViewModel(repository, clock = testClock)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        try {
+            advanceUntilIdle()
+            assertEquals(LocalDate.now(testClock), viewModel.uiState.value.selectedDate)
+            assertEquals(YearMonth.now(testClock), viewModel.uiState.value.currentMonth)
+        } finally {
+            collector.cancel()
+        }
+    }
+
+    @Test
+    fun initialLoadFlagTurnsTrueAfterRepositoryEmission() = runTest {
+        val repository = FakeCalendarDataStore(CalendarData(showLunar = false))
+        val viewModel = CalendarViewModel(repository, clock = testClock)
+        val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.isInitialLoaded.collect {}
+        }
+
+        try {
+            advanceUntilIdle()
+            assertTrue(viewModel.isInitialLoaded.value)
+        } finally {
+            collector.cancel()
+        }
+    }
 
     @Test
     fun calendarDataAndNoteEntriesStayInSyncWithinEachUiStateEmission() = runTest {
@@ -643,5 +683,4 @@ private class FakeCalendarDataStore(initialData: CalendarData) : CalendarDataSto
         return data.value
     }
 }
-
 

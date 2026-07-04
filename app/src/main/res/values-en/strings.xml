@@ -1,4 +1,4 @@
-﻿<resources>
+<resources>
     <string name="app_name">Shift Assistant</string>
     <string name="import_failed_invalid_file">Import failed: file format is invalid or corrupted</string>
     <string name="new_shift_profile">New Shift Profile</string>
@@ -119,11 +119,12 @@
     <string name="search_notes_label">Search Notes</string>
     <string name="search_notes_placeholder">Keyword, date, or month</string>
     <string name="all_months">All Months</string>
+    <string name="all_years">All Years</string>
     <string name="total_notes_count">%d notes</string>
     <string name="no_notes_yet">No notes yet</string>
     <string name="no_notes_matching">No matching notes</string>
     <string name="no_notes_hint">Go to day details to add a note.</string>
-    <string name="no_notes_filter_hint">Try a different keyword, month, or time range.</string>
+    <string name="no_notes_filter_hint">Try a different keyword or time range.</string>
     <string name="delete_note_confirm_message">Delete the note for %s?</string>
     <string name="delete_note_cd">Delete note</string>
     <string name="lunar_label_format">Lunar: %s</string>
@@ -194,6 +195,8 @@
     <!-- RemindersBottomSheet -->
     <string name="reminder_scope_pending">Pending</string>
     <string name="reminder_scope_overdue">Overdue</string>
+    <string name="reminder_scope_archived">Archived</string>
+    <string name="unarchive_reminder">Unarchive</string>
     <string name="reminders_center">Reminders</string>
     <string name="reminders_center_desc">Manage all reminders and tasks</string>
     <string name="total_reminders_stat">Total</string>

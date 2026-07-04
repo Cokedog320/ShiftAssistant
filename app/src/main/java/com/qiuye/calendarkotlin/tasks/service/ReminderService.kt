@@ -32,7 +32,9 @@ class ReminderService(
     private val calendarRepository: CalendarDataStore? = null
 ) {
     private val resolvedCalendarRepository = calendarRepository ?: com.qiuye.calendarkotlin.tasks.TasksGraph.calendarRepository(context.applicationContext)
-    fun observeReminders(profileId: String): Flow<List<ReminderEntity>> = repository.observeAll(profileId)
+    fun observeReminders(profileId: String): Flow<List<ReminderEntity>> = repository.observeActive(profileId)
+
+    fun observeArchivedReminders(profileId: String): Flow<List<ReminderEntity>> = repository.observeArchived(profileId)
 
     fun observeReminder(id: Long): Flow<ReminderEntity?> = repository.observeById(id)
 
@@ -71,7 +73,9 @@ class ReminderService(
             isCompleted = existing?.isCompleted ?: false,
             createdAtMillis = createdAt,
             updatedAtMillis = now,
-            profileId = existing?.profileId ?: resolvedProfileId
+            profileId = existing?.profileId ?: resolvedProfileId,
+            isArchived = existing?.isArchived ?: false,
+            archivedAtMillis = existing?.archivedAtMillis
         )
 
         val savedReminder = if (existing == null) {
@@ -83,7 +87,9 @@ class ReminderService(
                 isCompleted = reminder.isCompleted,
                 createdAtMillis = reminder.createdAtMillis,
                 updatedAtMillis = reminder.updatedAtMillis,
-                profileId = reminder.profileId
+                profileId = reminder.profileId,
+                isArchived = reminder.isArchived,
+                archivedAtMillis = reminder.archivedAtMillis
             )
         } else {
             repository.update(reminder)
@@ -122,7 +128,9 @@ suspend fun deleteReminder(reminderId: Long) {
             isCompleted = completed,
             createdAtMillis = reminder.createdAtMillis,
             updatedAtMillis = System.currentTimeMillis(),
-            profileId = reminder.profileId
+            profileId = reminder.profileId,
+            isArchived = reminder.isArchived,
+            archivedAtMillis = reminder.archivedAtMillis
         )
         repository.update(updated)
         if (completed) {
@@ -133,8 +141,22 @@ suspend fun deleteReminder(reminderId: Long) {
         }
     }
 
+    suspend fun runAutoArchiveSweep(profileId: String, retentionDays: Int = 30) {
+        val retentionMillis = retentionDays * 24 * 60 * 60 * 1000L
+        val now = System.currentTimeMillis()
+        val cutoff = now - retentionMillis
+        val eligible = repository.findEligibleForAutoArchive(profileId, cutoff, cutoff)
+        if (eligible.isEmpty()) return
+        repository.archive(eligible.map { it.id }, now)
+    }
+
+    suspend fun unarchiveReminder(reminderId: Long) {
+        repository.unarchive(reminderId)
+    }
+
     suspend fun restoreSchedules() {
         val activeProfileId = resolvedCalendarRepository.getCurrentData().activeProfileId
+        runAutoArchiveSweep(activeProfileId)
         restoreSchedulesForProfile(activeProfileId)
     }
 
@@ -184,7 +206,9 @@ suspend fun deleteReminder(reminderId: Long) {
         isCompleted: Boolean,
         createdAtMillis: Long,
         updatedAtMillis: Long,
-        profileId: String
+        profileId: String,
+        isArchived: Boolean = false,
+        archivedAtMillis: Long? = null
     ): ReminderEntity {
         return ReminderEntity(
             id = id,
@@ -194,7 +218,9 @@ suspend fun deleteReminder(reminderId: Long) {
             isCompleted = isCompleted,
             createdAtMillis = createdAtMillis,
             updatedAtMillis = updatedAtMillis,
-            profileId = profileId
+            profileId = profileId,
+            isArchived = isArchived,
+            archivedAtMillis = archivedAtMillis
         )
     }
 }

@@ -6,6 +6,9 @@ import com.nlf.calendar.Solar
 import com.qiuye.calendarkotlin.model.HolidayMarker
 import com.qiuye.calendarkotlin.ui.theme.isEnglishAppLocale
 import java.time.LocalDate
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -49,9 +52,12 @@ object ChineseCalendarInfo {
     @Volatile
     private var workdays: Map<LocalDate, String> = emptyMap()
 
+    private val _holidaysReady = MutableStateFlow(false)
+    val holidaysReady: StateFlow<Boolean> = _holidaysReady.asStateFlow()
+
     /**
      * 从 assets/holidays.json 加载假日数据。
-     * 应在 Application 或 MainActivity.onCreate 中调用一次。
+     * 应在 Application.onCreate 中后台调用一次。
      * 支持多年份数据，后续只需编辑 JSON 文件即可。
      */
     fun init(context: Context) {
@@ -79,9 +85,21 @@ object ChineseCalendarInfo {
                     LocalDate.parse(entry.date) to entry.name
                 }
             }.toMap()
+            _holidaysReady.value = true
         } catch (e: Exception) {
             Log.e("ChineseCalendarInfo", "加载 holidays.json 失败", e)
+            _holidaysReady.value = true
         }
+    }
+
+    internal fun resetHolidaysReadyForTesting() {
+        _holidaysReady.value = false
+        holidayPeriods = emptyList()
+        workdays = emptyMap()
+    }
+
+    internal fun markHolidaysReadyForTesting() {
+        _holidaysReady.value = true
     }
 
     fun getLunarDisplay(date: LocalDate): LunarDisplay {

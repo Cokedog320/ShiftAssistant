@@ -13,6 +13,7 @@ import com.qiuye.calendarkotlin.data.CalendarDataStore
 import com.qiuye.calendarkotlin.model.CalendarData
 import io.mockk.every
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -22,6 +23,7 @@ class TasksViewModelTest {
     private lateinit var mockService: ReminderService
     private lateinit var mockCalendarDataStore: CalendarDataStore
     private val remindersFlow = MutableStateFlow<List<ReminderEntity>>(emptyList())
+    private val archivedRemindersFlow = MutableStateFlow<List<ReminderEntity>>(emptyList())
 
     @Before
     fun setUp() {
@@ -30,6 +32,7 @@ class TasksViewModelTest {
         every { mockCalendarDataStore.calendarData } returns MutableStateFlow(CalendarData())
         coEvery { mockCalendarDataStore.getCurrentData() } returns CalendarData()
         every { mockService.observeReminders(any()) } returns remindersFlow
+        every { mockService.observeArchivedReminders(any()) } returns archivedRemindersFlow
         viewModel = TasksViewModel(mockService, mockCalendarDataStore)
     }
 
@@ -69,5 +72,35 @@ class TasksViewModelTest {
             assertEquals("Upcoming", list[0].title)
             assertEquals("Done", list[1].title)
         }
+    }
+
+    @Test
+    fun `archived reminders are exposed separately and sorted by archived time`() = runTest {
+        viewModel.archivedReminders.test {
+            awaitItem()
+
+            val now = System.currentTimeMillis()
+            val archivedFirst = ReminderEntity(
+                1, "Archived first", "", now - 3600_000, true, 0, 0,
+                isArchived = true, archivedAtMillis = now - 120_000
+            )
+            val archivedSecond = ReminderEntity(
+                2, "Archived second", "", now - 7200_000, true, 0, 0,
+                isArchived = true, archivedAtMillis = now - 60_000
+            )
+
+            archivedRemindersFlow.value = listOf(archivedFirst, archivedSecond)
+            val list = awaitItem()
+
+            assertEquals(2, list.size)
+            assertEquals("Archived second", list[0].title)
+            assertEquals("Archived first", list[1].title)
+        }
+    }
+
+    @Test
+    fun `unarchive reminder delegates to service`() = runTest {
+        viewModel.unarchiveReminder(42L)
+        coVerify { mockService.unarchiveReminder(42L) }
     }
 }

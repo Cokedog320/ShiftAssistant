@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -88,7 +89,7 @@ class CalendarViewModel internal constructor(
         encodeDefaults = true
     }
     private val currentMonth = MutableStateFlow(YearMonth.now(clock))
-    private val selectedDate = MutableStateFlow<LocalDate?>(null)
+    private val selectedDate = MutableStateFlow<LocalDate?>(LocalDate.now(clock))
     private val sheetState = MutableStateFlow(SheetState())
     private val initialCalendarDataWithNotes = CalendarData(
         profiles = listOf(ShiftProfile(id = "default", name = defaultProfileName)),
@@ -102,13 +103,24 @@ class CalendarViewModel internal constructor(
                 initialValue = initialCalendarDataWithNotes,
             )
 
+    val isInitialLoaded: StateFlow<Boolean> =
+        repository.calendarData
+            .map { true }
+            .onStart { emit(false) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = false,
+            )
+
     val uiState: StateFlow<CalendarUiState> =
         combine(
             calendarDataWithNotes,
             currentMonth,
             selectedDate,
-            sheetState
-        ) { dataWithNotes, month, selected, state ->
+            sheetState,
+            ChineseCalendarInfo.holidaysReady,
+        ) { dataWithNotes, month, selected, state, _ ->
             CalendarUiState(
                 currentMonth = month,
                 selectedDate = selected,

@@ -18,12 +18,15 @@ import kotlinx.coroutines.launch
 class DiaryViewModel internal constructor(
     private val repository: DiaryRepository,
 ) : ViewModel() {
+    private val _isInitialLoaded = MutableStateFlow(false)
+    val isInitialLoaded = _isInitialLoaded.asStateFlow()
 
     val allEntries: StateFlow<List<DiaryEntity>> = repository.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val diaryDateKeys: StateFlow<Set<String>> = repository.observeAllDateKeys()
         .map { it.toSet() }
+        .onEach { _isInitialLoaded.value = true }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
     private val _searchQuery = MutableStateFlow("")

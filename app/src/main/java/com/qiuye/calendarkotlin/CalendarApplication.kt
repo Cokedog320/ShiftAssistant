@@ -1,6 +1,7 @@
 package com.qiuye.calendarkotlin
 
 import android.app.Application
+import com.qiuye.calendarkotlin.domain.ChineseCalendarInfo
 import com.qiuye.calendarkotlin.tasks.TasksGraph
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +17,12 @@ class CalendarApplication : Application() {
         super.onCreate()
         TasksGraph.initialize(this)
         applicationScope.launch {
+            ChineseCalendarInfo.init(this@CalendarApplication)
+        }
+        applicationScope.launch {
             runCatching {
-                TasksGraph.reminderService().restoreSchedules()
+                val service = TasksGraph.reminderService()
+                service.restoreSchedules()
             }.onFailure { e ->
                 Log.e("CalendarApplication", "Failed to restore schedules on app launch", e)
             }

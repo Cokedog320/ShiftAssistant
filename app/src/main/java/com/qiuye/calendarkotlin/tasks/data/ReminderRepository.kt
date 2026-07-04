@@ -9,6 +9,10 @@ class ReminderRepository(
 ) {
     fun observeAll(profileId: String): Flow<List<ReminderEntity>> = reminderDao.observeAll(profileId)
 
+    fun observeActive(profileId: String): Flow<List<ReminderEntity>> = reminderDao.observeActive(profileId)
+
+    fun observeArchived(profileId: String): Flow<List<ReminderEntity>> = reminderDao.observeArchived(profileId)
+
     fun observeById(id: Long): Flow<ReminderEntity?> = reminderDao.observeById(id)
 
     suspend fun getById(id: Long): ReminderEntity? = withContext(Dispatchers.IO) {
@@ -17,6 +21,22 @@ class ReminderRepository(
 
     suspend fun getFutureActiveReminders(profileId: String, now: Long): List<ReminderEntity> = withContext(Dispatchers.IO) {
         reminderDao.getFutureActiveReminders(profileId, now)
+    }
+
+    suspend fun findEligibleForAutoArchive(
+        profileId: String,
+        completedCutoffMillis: Long,
+        overdueCutoffMillis: Long
+    ): List<ReminderEntity> = withContext(Dispatchers.IO) {
+        reminderDao.findEligibleForAutoArchive(profileId, completedCutoffMillis, overdueCutoffMillis)
+    }
+
+    suspend fun archive(ids: List<Long>, archivedAtMillis: Long) = withContext(Dispatchers.IO) {
+        reminderDao.archive(ids, archivedAtMillis)
+    }
+
+    suspend fun unarchive(id: Long) = withContext(Dispatchers.IO) {
+        reminderDao.unarchive(id)
     }
 
     suspend fun insert(reminder: ReminderEntity): Long = withContext(Dispatchers.IO) {
