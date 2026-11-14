@@ -12,5 +12,19 @@
       { "name": "Christmas Day", "start": "2026-12-25", "end": "2026-12-25" }
     ],
     "workdays": []
+  },
+  {
+    "year": 2027,
+    "holidays": [
+      { "name": "New Year's Day", "start": "2027-01-01", "end": "2027-01-01" },
+      { "name": "Valentine's Day", "start": "2027-02-14", "end": "2027-02-14" },
+      { "name": "Mother's Day", "start": "2027-05-09", "end": "2027-05-09" },
+      { "name": "Father's Day", "start": "2027-06-20", "end": "2027-06-20" },
+      { "name": "Halloween", "start": "2027-10-31", "end": "2027-10-31" },
+      { "name": "Thanksgiving", "start": "2027-11-25", "end": "2027-11-25" },
+      { "name": "Christmas Eve", "start": "2027-12-24", "end": "2027-12-24" },
+      { "name": "Christmas Day", "start": "2027-12-25", "end": "2027-12-25" }
+    ],
+    "workdays": []
   }
 ]
