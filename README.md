@@ -21,6 +21,13 @@
 
 ### 最近更新 (🌟 Recent Updates)
 
+#### v1.1
+- 📅 **补全 2027 年法定节假日与调休安排**：
+  - 依据国务院办公厅 2027 年部分节假日安排通知，内置 2027 年元旦、春节、清明节、劳动节、端午节（6 月 9 日单休不调休）、中秋节（9 月 15 日单休不调休）及国庆节假期与全部 5 个调休上班日（`休` / `班`）标记。
+  - 同步更新英文模式（`holidays_en.json`）下 2027 年西方主要节日日期（New Year's Day、Valentine's Day、Mother's Day、Father's Day、Halloween、Thanksgiving、Christmas Eve、Christmas Day）。
+  - 补充真实假日资源文件（`holidays.json` / `holidays_en.json`）的解析与调休标记单元测试，全套 137 项 JVM 单元测试通过；支持从 v1.0 无缝覆盖升级并完整保留本地数据。
+
+#### v1.0
 - 🚀 **冷启动零闪烁 / 零空白（SplashScreen 就绪门）**：
   - 新增统一的启动屏“就绪门”，在主题、语言、排班数据、节假日、提醒、日记六类数据首次真实加载完成前保持启动屏（并带 800ms 超时兜底，绝不卡死）。
   - 彻底消除了“浅色模式下先闪一下深色再切回”以及“主页面先空白、稍后才显示排班规律”的问题，冷启动第一帧即为完整、正确的界面。
@@ -101,6 +108,13 @@ This repository serves as a reliable, clean, and highly robust daily utility tha
 
 ### 🌟 Recent Updates
 
+#### v1.1
+- 📅 **2027 Statutory Holidays & Makeup Workdays**:
+  - Added all 2027 Chinese statutory holidays and 5 makeup workdays (`holidays.json`), including New Year's Day, Spring Festival, Qingming Festival, Labor Day, Dragon Boat Festival (June 9, single day off with no makeup workday), Mid-Autumn Festival (September 15, single day off with no makeup workday), and National Day.
+  - Updated `holidays_en.json` with 2027 Western holidays for the English locale (New Year's Day, Valentine's Day, Mother's Day, Father's Day, Halloween, Thanksgiving, Christmas Eve, and Christmas Day).
+  - Added asset-backed unit tests verifying 2027 holiday and makeup workday markers (all 137 JVM unit tests pass); supports seamless in-place upgrade over v1.0 while preserving all local data.
+
+#### v1.0
 - 🚀 **Flicker-Free, Blank-Free Cold Start (SplashScreen Ready-Gate)**:
   - Added a unified splash "ready-gate" that keeps the splash screen up until theme, language, shift/calendar data, holidays, reminders, and diary data have all had their first real load (with an 800ms fallback so it never hangs).
   - Completely eliminates the "dark flashes first then switches to light" issue and the "empty home screen, shift pattern appears a moment later" delay — the very first frame on cold start is complete and correct.
